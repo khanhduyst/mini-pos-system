@@ -1,0 +1,68 @@
+<?php
+require_once 'config/database.php';
+require_once 'controllers/AuthController.php';
+require_once 'controllers/UserController.php';
+
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+$request_uri = $_SERVER['REQUEST_URI'];
+$url_path = parse_url($request_uri, PHP_URL_PATH);
+$url_path = trim($url_path, '/');
+
+if ($url_path == 'test_db.php') {
+    require_once 'test_db.php';
+    exit();
+}
+
+if ($url_path == 'create_admin.php') {
+    require_once 'create_admin.php';
+    exit();
+}
+
+$url_parts = explode('/', $url_path);
+$controller_name = isset($url_parts[0]) && $url_parts[0] != '' ? $url_parts[0] : 'home';
+$action_name = isset($url_parts[1]) && $url_parts[1] != '' ? $url_parts[1] : 'index';
+
+if ($controller_name == 'auth') {
+    $controller = new AuthController();
+    if ($action_name == 'login') {
+        $controller->login();
+    } else if ($action_name == 'logout') {
+        $controller->logout();
+    } else {
+        echo "404 Not Found";
+    }
+    exit();
+}
+
+if (!isset($_SESSION['user_id'])) {
+    $controller = new AuthController();
+    $controller->login();
+    exit();
+}
+
+if ($controller_name == 'user') {
+    $controller = new UserController();
+    if ($action_name == 'index') {
+        $controller->index();
+    } else if ($action_name == 'add') {
+        $controller->add();
+    } else if ($action_name == 'edit') {
+        $controller->edit();
+    } else if ($action_name == 'toggle') {
+        $controller->toggle();
+    } else {
+        echo "404 Not Found";
+    }
+    exit();
+}
+
+if ($controller_name == 'home' || $controller_name == '') {
+    echo "Chào mừng " . $_SESSION['full_name'] . " đến với Hệ thống POS tại quầy! <br><br>";
+    echo "<a href='/user/index' style='font-weight:bold; font-size:18px;'>[ VÀO TRANG QUẢN LÝ NHÂN VIÊN ]</a><br><br>";
+    echo "<a href='/auth/logout'>Đăng xuất</a>";
+} else {
+    echo "404 Not Found";
+}
