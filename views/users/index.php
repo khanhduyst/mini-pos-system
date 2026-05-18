@@ -4,9 +4,12 @@
     <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
         <div>
             <h4 class="fw-bold text-dark mb-1" style="font-size: 18px;">Quản lý nhân viên</h4>
-            <p class="text-muted small mb-0" style="font-size: 13px;">Xem danh sách, phân quyền và trạng thái hoạt động của nhân viên tại quầy</p>
+            <p class="text-muted small mb-0" style="font-size: 13px;">Xem danh sách, phân quyền và trạng thái hoạt động
+                của nhân viên tại quầy</p>
         </div>
-        <button class="btn btn-primary fw-semibold px-3 py-2 rounded-2 d-flex align-items-center gap-2 shadow-none" style="background-color: #3c50e0; border-color: #3c50e0; font-size: 14px;" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <button class="btn btn-primary fw-semibold px-3 py-2 rounded-2 d-flex align-items-center gap-2 shadow-none"
+            style="background-color: #3c50e0; border-color: #3c50e0; font-size: 14px;" data-bs-toggle="modal"
+            data-bs-target="#addUserModal">
             <i class="bi bi-plus-lg"></i> Thêm nhân viên
         </button>
     </div>
@@ -14,137 +17,242 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-secondary font-monospace small border-bottom" style="background-color: #f8fafc;">
+                <thead class="table-light text-secondary font-monospace small border-bottom"
+                    style="background-color: #f8fafc;">
                     <tr>
-                        <th class="ps-4 py-3 text-secondary" style="font-size: 12px; letter-spacing: 0.5px;">MÃ NV</th>
-                        <th class="py-3 text-secondary" style="font-size: 12px; letter-spacing: 0.5px;">HỌ VÀ TÊN</th>
-                        <th class="py-3 text-secondary" style="font-size: 12px; letter-spacing: 0.5px;">TÀI KHOẢN</th>
-                        <th class="py-3 text-secondary" style="font-size: 12px; letter-spacing: 0.5px;">EMAIL</th>
-                        <th class="py-3 text-secondary" style="font-size: 12px; letter-spacing: 0.5px;">CHỨC VỤ</th>
-                        <th class="py-3 text-secondary" style="font-size: 12px; letter-spacing: 0.5px;">TRẠNG THÁI</th>
-                        <th class="text-end pe-4 py-3 text-secondary" style="font-size: 12px; letter-spacing: 0.5px;">HÀNH ĐỘNG</th>
+                        <th class="ps-4 py-3 text-secondary" style="font-size: 12px;">MÃ NV</th>
+                        <th class="py-3 text-secondary" style="font-size: 12px;">HỌ VÀ TÊN</th>
+                        <th class="py-3 text-secondary" style="font-size: 12px;">TÀI KHOẢN</th>
+                        <th class="py-3 text-secondary" style="font-size: 12px;">EMAIL</th>
+                        <th class="py-3 text-secondary" style="font-size: 12px;">CHỨC VỤ</th>
+                        <th class="py-3 text-secondary" style="font-size: 12px;">TRẠNG THÁI</th>
+                        <th class="text-end pe-4 py-3 text-secondary" style="font-size: 12px;">HÀNH ĐỘNG</th>
                     </tr>
                 </thead>
                 <tbody class="text-dark" style="font-size: 14px;">
                     <?php if (isset($users) && is_array($users)): ?>
-                        <?php foreach ($users as $user): ?>
-                            <tr style="border-bottom: 1px solid #f1f5f9;">
-                                <td class="ps-4 fw-bold text-primary"><?php echo $user['user_code']; ?></td>
-                                <td class="fw-semibold text-dark"><?php echo $user['full_name']; ?></td>
-                                <td><?php echo $user['username']; ?></td>
-                                <td class="text-secondary"><?php echo $user['email']; ?></td>
-                                <td>
-                                    <span class="badge rounded-1 px-2 py-1" style="<?php echo $user['role'] == 'admin' ? 'background-color: #fde8e8; color: #e02424; font-size: 12px;' : 'background-color: #e1effe; color: #1e429f; font-size: 12px;'; ?>">
-                                        <?php echo $user['role'] == 'admin' ? 'Chủ cửa hàng' : 'Thu ngân'; ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge rounded-1 px-2 py-1" style="<?php echo $user['status'] == 1 ? 'background-color: #def7ec; color: #03543f; font-size: 12px;' : 'background-color: #f3f4f6; color: #4b5563; font-size: 12px;'; ?>">
-                                        <?php echo $user['status'] == 1 ? 'Hoạt động' : 'Đang khóa'; ?>
-                                    </span>
-                                </td>
-                                <td class="text-end pe-4">
-                                    <div class="d-flex justify-content-end gap-1">
-                                        <button class="btn btn-sm btn-light text-secondary border rounded-2 px-2 shadow-none" title="Xem chi tiết" data-bs-toggle="modal" data-bs-target="#viewUserModal<?php echo $user['id']; ?>">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
+                    <?php foreach ($users as $user): ?>
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td class="ps-4 fw-bold text-primary"><?php echo $user['user_code']; ?></td>
+                        <td class="fw-semibold text-dark"><?php echo $user['full_name']; ?></td>
+                        <td><?php echo $user['username']; ?></td>
+                        <td class="text-secondary"><?php echo $user['email']; ?></td>
+                        <td>
+                            <span class="badge rounded-1 px-2 py-1"
+                                style="<?php echo $user['role_name'] == 'admin' ? 'background-color: #fde8e8; color: #e02424; font-size: 12px;' : 'background-color: #e1effe; color: #1e429f; font-size: 12px;'; ?>">
+                                <?php echo $user['role_name'] == 'admin' ? 'Chủ cửa hàng' : 'Thu ngân'; ?>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge rounded-1 px-2 py-1"
+                                style="<?php echo $user['status'] == 1 ? 'background-color: #def7ec; color: #03543f; font-size: 12px;' : 'background-color: #f3f4f6; color: #4b5563; font-size: 12px;'; ?>">
+                                <?php echo $user['status'] == 1 ? 'Hoạt động' : 'Đang khóa'; ?>
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-1">
+                                <button class="btn btn-sm btn-light text-secondary border rounded-2 px-2 shadow-none"
+                                    data-bs-toggle="modal" data-bs-target="#viewUserModal<?php echo $user['id']; ?>"><i
+                                        class="bi bi-eye"></i></button>
+                                <button class="btn btn-sm btn-light text-primary border rounded-2 px-2 shadow-none"
+                                    data-bs-toggle="modal" data-bs-target="#editUserModal<?php echo $user['id']; ?>"><i
+                                        class="bi bi-pencil"></i></button>
+                                <?php if ($user['id'] != $_SESSION['user_id']): ?>
+                                <button
+                                    class="btn btn-sm border rounded-2 px-2 shadow-none <?php echo $user['status'] == 1 ? 'btn-light text-danger' : 'btn-light text-success'; ?>"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#toggleStatusModal<?php echo $user['id']; ?>"><i
+                                        class="bi <?php echo $user['status'] == 1 ? 'bi-lock' : 'bi-unlock'; ?>"></i></button>
+                                <?php else: ?>
+                                <button class="btn btn-sm btn-light text-muted border rounded-2 px-2 shadow-none"
+                                    disabled><i class="bi bi-person-check-fill"></i></button>
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
 
-                                        <button class="btn btn-sm btn-light text-primary border rounded-2 px-2 shadow-none" title="Sửa thông tin" data-bs-toggle="modal" data-bs-target="#editUserModal<?php echo $user['id']; ?>">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-
-                                        <?php if ($user['id'] != $_SESSION['user_id']): ?>
-                                            <a href="/user/toggle?id=<?php echo $user['id']; ?>&status=<?php echo $user['status']; ?>" class="btn btn-sm border rounded-2 px-2 shadow-none <?php echo $user['status'] == 1 ? 'btn-light text-danger' : 'btn-light text-success'; ?>" title="<?php echo $user['status'] == 1 ? 'Khóa tài khoản' : 'Mở khóa tài khoản'; ?>">
-                                                <i class="bi <?php echo $user['status'] == 1 ? 'bi-lock' : 'bi-unlock'; ?>"></i>
-                                            </a>
-                                        <?php else: ?>
-                                            <button class="btn btn-sm btn-light text-muted border rounded-2 px-2 shadow-none" disabled title="Tài khoản của bạn">
-                                                <i class="bi bi-person-check-fill"></i>
-                                            </button>
-                                        <?php endif; ?>
+                    <div class="modal fade" id="viewUserModal<?php echo $user['id']; ?>" tabindex="-1"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow rounded-3">
+                                <div class="modal-header p-4 border-bottom bg-white">
+                                    <h5 class="modal-title fw-bold text-dark">Hồ sơ nhân viên:
+                                        <?php echo $user['user_code']; ?></h5>
+                                    <button type="button" class="btn-close shadow-none"
+                                        data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body p-4 bg-white">
+                                    <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
+                                        <img src="<?php echo $user['avatar'] ? $user['avatar'] : 'https://ui-avatars.com/api/?name=' . urlencode($user['full_name']) . '&background=3c50e0&color=fff&rounded=true'; ?>"
+                                            width="50" height="50">
+                                        <div>
+                                            <h6 class="fw-bold text-dark mb-1"><?php echo $user['full_name']; ?></h6>
+                                            <small class="text-muted">Tài khoản:
+                                                <?php echo $user['username']; ?></small>
+                                        </div>
                                     </div>
-                                </td>
-                            </tr>
-
-                            <div class="modal fade" id="viewUserModal<?php echo $user['id']; ?>" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content border-0 shadow rounded-3">
-                                        <div class="modal-header p-4 border-bottom bg-white">
-                                            <h5 class="modal-title fw-bold text-dark">Hồ sơ nhân viên: <?php echo $user['user_code']; ?></h5>
-                                            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    <div class="row g-3">
+                                        <div class="col-6"><span
+                                                class="small text-secondary font-monospace d-block">EMAIL</span> <span
+                                                class="fw-semibold text-dark"><?php echo $user['email']; ?></span></div>
+                                        <div class="col-6"><span class="small text-secondary font-monospace d-block">SỐ
+                                                ĐIỆN THOẠI</span> <span
+                                                class="fw-semibold text-dark"><?php echo $user['phone'] ? $user['phone'] : 'N/A'; ?></span>
                                         </div>
-                                        <div class="modal-body p-4 bg-white">
-                                            <div class="d-flex align-items-center gap-3 mb-4 border-bottom pb-3">
-                                                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['full_name']); ?>&background=3c50e0&color=fff&rounded=true" width="50" height="50">
-                                                <div>
-                                                    <h6 class="fw-bold text-dark mb-1"><?php echo $user['full_name']; ?></h6>
-                                                    <small class="text-muted">Tài khoản: <?php echo $user['username']; ?></small>
-                                                </div>
-                                            </div>
-                                            <div class="row g-3">
-                                                <div class="col-6"><span class="small text-secondary font-monospace d-block">EMAIL</span> <span class="fw-semibold text-dark"><?php echo $user['email']; ?></span></div>
-                                                <div class="col-6"><span class="small text-secondary font-monospace d-block">SỐ ĐIỆN THOẠI</span> <span class="fw-semibold text-dark"><?php echo $user['phone'] ? $user['phone'] : 'Chưa cập nhật'; ?></span></div>
-                                                <div class="col-6"><span class="small text-secondary font-monospace d-block">CHỨC VỤ</span> <span class="fw-semibold text-dark"><?php echo $user['role'] == 'admin' ? 'Chủ cửa hàng' : 'Thu ngân'; ?></span></div>
-                                                <div class="col-6"><span class="small text-secondary font-monospace d-block">NGÀY GIA NHẬP</span> <span class="fw-semibold text-dark"><?php echo date('d/m/Y', strtotime($user['created_at'])); ?></span></div>
-                                            </div>
+                                        <div class="col-6"><span
+                                                class="small text-secondary font-monospace d-block">GIỚI TÍNH</span>
+                                            <span
+                                                class="fw-semibold text-dark"><?php echo $user['gender'] == 'male' ? 'Nam' : ($user['gender'] == 'female' ? 'Nữ' : 'Khác'); ?></span>
                                         </div>
-                                        <div class="modal-footer border-top p-3 bg-white">
-                                            <button type="button" class="btn btn-light fw-semibold rounded-2 px-4 shadow-none" data-bs-dismiss="modal">Đóng</button>
+                                        <div class="col-6"><span
+                                                class="small text-secondary font-monospace d-block">NGÀY SINH</span>
+                                            <span
+                                                class="fw-semibold text-dark"><?php echo $user['date_of_birth'] ? date('d/m/Y', strtotime($user['date_of_birth'])) : 'N/A'; ?></span>
+                                        </div>
+                                        <div class="col-6"><span
+                                                class="small text-secondary font-monospace d-block">CHỨC VỤ</span> <span
+                                                class="fw-semibold text-dark"><?php echo $user['role_name'] == 'admin' ? 'Chủ cửa hàng' : 'Thu ngân'; ?></span>
+                                        </div>
+                                        <div class="col-6"><span
+                                                class="small text-secondary font-monospace d-block">NGÀY GIA NHẬP</span>
+                                            <span
+                                                class="fw-semibold text-dark"><?php echo date('d/m/Y', strtotime($user['created_at'])); ?></span>
+                                        </div>
+                                        <div class="col-12"><span
+                                                class="small text-secondary font-monospace d-block">ĐỊA CHỈ</span> <span
+                                                class="fw-semibold text-dark"><?php echo $user['address'] ? $user['address'] : 'N/A'; ?></span>
+                                        </div>
+                                        <div class="col-12"><span
+                                                class="small text-secondary font-monospace d-block">GHI CHÚ</span> <span
+                                                class="fw-semibold text-muted"><?php echo $user['note'] ? $user['note'] : 'Không có'; ?></span>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="modal-footer border-top p-3 bg-white">
+                                    <button type="button" class="btn btn-light fw-semibold rounded-2 px-4 shadow-none"
+                                        data-bs-dismiss="modal">Đóng</button>
+                                </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div class="modal fade" id="editUserModal<?php echo $user['id']; ?>" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content border-0 shadow rounded-3">
-                                        <div class="modal-header p-4 border-bottom bg-white">
-                                            <h5 class="modal-title fw-bold text-dark">Cập nhật thông tin nhân viên</h5>
-                                            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal fade" id="editUserModal<?php echo $user['id']; ?>" tabindex="-1"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content border-0 shadow rounded-3">
+                                <div class="modal-header p-4 border-bottom bg-white">
+                                    <h5 class="modal-title fw-bold text-dark">Cập nhật thông tin nhân viên</h5>
+                                    <button type="button" class="btn-close shadow-none"
+                                        data-bs-dismiss="modal"></button>
+                                </div>
+                                <form action="/user/edit" method="POST" novalidate>
+                                    <input type="hidden" name="id" value="<?php echo $user['id']; ?>">
+                                    <div class="modal-body p-4 bg-white">
+                                        <div class="row g-3">
+                                            <div class="col-md-6"><label
+                                                    class="form-label small fw-semibold text-secondary">Mã nhân
+                                                    viên</label><input type="text" class="form-control bg-light"
+                                                    name="user_code" value="<?php echo $user['user_code']; ?>" readonly>
+                                            </div>
+                                            <div class="col-md-6"><label
+                                                    class="form-label small fw-semibold text-secondary">Tên đăng
+                                                    nhập</label><input type="text" class="form-control bg-light"
+                                                    value="<?php echo $user['username']; ?>" readonly></div>
+                                            <div class="col-md-6"><label
+                                                    class="form-label small fw-semibold text-secondary">Họ và
+                                                    tên</label><input type="text" class="form-control" name="full_name"
+                                                    value="<?php echo $user['full_name']; ?>" required></div>
+                                            <div class="col-md-6"><label
+                                                    class="form-label small fw-semibold text-secondary">Địa chỉ
+                                                    Email</label><input type="email" class="form-control" name="email"
+                                                    value="<?php echo $user['email']; ?>" required></div>
+                                            <div class="col-md-6"><label
+                                                    class="form-label small fw-semibold text-secondary">Số điện
+                                                    thoại</label><input type="text" class="form-control" name="phone"
+                                                    value="<?php echo $user['phone']; ?>"></div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold text-secondary">Giới
+                                                    tính</label>
+                                                <select class="form-select" name="gender">
+                                                    <option value="male"
+                                                        <?php echo $user['gender'] == 'male' ? 'selected' : ''; ?>>Nam
+                                                    </option>
+                                                    <option value="female"
+                                                        <?php echo $user['gender'] == 'female' ? 'selected' : ''; ?>>Nữ
+                                                    </option>
+                                                    <option value="other"
+                                                        <?php echo $user['gender'] == 'other' ? 'selected' : ''; ?>>Khác
+                                                    </option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6"><label
+                                                    class="form-label small fw-semibold text-secondary">Ngày
+                                                    sinh</label><input type="date" class="form-control"
+                                                    name="date_of_birth" value="<?php echo $user['date_of_birth']; ?>">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label small fw-semibold text-secondary">Vai trò phân
+                                                    quyền</label>
+                                                <select class="form-select" name="role_id">
+                                                    <option value="2"
+                                                        <?php echo $user['role_id'] == 2 ? 'selected' : ''; ?>>Thu ngân
+                                                        (Staff)</option>
+                                                    <option value="1"
+                                                        <?php echo $user['role_id'] == 1 ? 'selected' : ''; ?>>Chủ cửa
+                                                        hàng (Admin)</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12"><label
+                                                    class="form-label small fw-semibold text-secondary">Địa
+                                                    chỉ</label><input type="text" class="form-control" name="address"
+                                                    value="<?php echo $user['address']; ?>"></div>
+                                            <div class="col-12"><label
+                                                    class="form-label small fw-semibold text-secondary">Ghi
+                                                    chú</label><textarea class="form-control" name="note"
+                                                    rows="2"><?php echo $user['note']; ?></textarea></div>
                                         </div>
-                                        <form action="/user/edit" method="POST">
-                                            <input type="hidden" name="id" value="<?php echo $user['id']; ?>">
-                                            <div class="modal-body p-4 bg-white">
-                                                <div class="row g-3">
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-semibold text-secondary">Mã nhân viên</label>
-                                                        <input type="text" class="form-control border rounded-2 p-2 shadow-none bg-light" name="user_code" value="<?php echo $user['user_code']; ?>" readonly>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-semibold text-secondary">Tên đăng nhập</label>
-                                                        <input type="text" class="form-control border rounded-2 p-2 shadow-none bg-light" value="<?php echo $user['username']; ?>" readonly>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <label class="form-label small fw-semibold text-secondary">Họ và tên</label>
-                                                        <input type="text" class="form-control border rounded-2 p-2 shadow-none" name="full_name" value="<?php echo $user['full_name']; ?>" required>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <label class="form-label small fw-semibold text-secondary">Địa chỉ Email</label>
-                                                        <input type="email" class="form-control border rounded-2 p-2 shadow-none" name="email" value="<?php echo $user['email']; ?>" required>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-semibold text-secondary">Số điện thoại</label>
-                                                        <input type="text" class="form-control border rounded-2 p-2 shadow-none" name="phone" value="<?php echo $user['phone']; ?>">
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label class="form-label small fw-semibold text-secondary">Vai trò phân quyền</label>
-                                                        <select class="form-select border rounded-2 p-2 shadow-none" name="role">
-                                                            <option value="staff" <?php echo $user['role'] == 'staff' ? 'selected' : ''; ?>>Thu ngân (Staff)</option>
-                                                            <option value="admin" <?php echo $user['role'] == 'admin' ? 'selected' : ''; ?>>Chủ cửa hàng (Admin)</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer border-top p-3 bg-white">
-                                                <button type="button" class="btn btn-light fw-semibold rounded-2 px-3" data-bs-dismiss="modal">Hủy</button>
-                                                <button type="submit" class="btn btn-primary fw-semibold rounded-2 px-4" style="background-color: #3c50e0; border-color: #3c50e0;">Cập nhật</button>
-                                            </div>
-                                        </form>
+                                    </div>
+                                    <div class="modal-footer border-top p-3 bg-white">
+                                        <button type="button" class="btn btn-light fw-semibold rounded-2 px-3"
+                                            data-bs-dismiss="modal">Hủy</button>
+                                        <button type="submit" class="btn btn-primary fw-semibold rounded-2 px-4"
+                                            style="background-color: #3c50e0; border-color: #3c50e0;">Cập nhật</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="toggleStatusModal<?php echo $user['id']; ?>" tabindex="-1"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-sm">
+                            <div class="modal-content border-0 shadow-lg rounded-3">
+                                <div class="modal-body p-4 text-center bg-white rounded-3">
+                                    <?php if ($user['status'] == 1): ?>
+                                    <div class="text-danger mb-3"><i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                                    </div>
+                                    <h5 class="fw-bold text-dark mb-2">Khóa tài khoản?</h5>
+                                    <p class="text-secondary small mb-4">Nhân viên <strong
+                                            class="text-dark"><?php echo $user['full_name']; ?></strong> sẽ không thể
+                                        đăng nhập sau khi bị khóa.</p>
+                                    <?php else: ?>
+                                    <div class="text-success mb-3"><i class="bi bi-info-circle-fill fs-1"></i></div>
+                                    <h5 class="fw-bold text-dark mb-2">Mở khóa?</h5>
+                                    <p class="text-secondary small mb-4">Kích hoạt lại quyền truy cập cho nhân viên
+                                        <strong class="text-dark"><?php echo $user['full_name']; ?></strong>.</p>
+                                    <?php endif; ?>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <button type="button" class="btn btn-light fw-semibold rounded-2 px-3 small"
+                                            data-bs-dismiss="modal">Hủy</button>
+                                        <a href="/user/toggle?id=<?php echo $user['id']; ?>&status=<?php echo $user['status']; ?>"
+                                            class="btn fw-semibold rounded-2 px-4 small text-white <?php echo $user['status'] == 1 ? 'btn-danger' : 'btn-success'; ?>">Xác
+                                            nhận</a>
                                     </div>
                                 </div>
                             </div>
-
-                        <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -153,55 +261,171 @@
 </div>
 
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-1 shadow rounded-3">
             <div class="modal-header p-4 border-bottom bg-white">
                 <h5 class="modal-title fw-bold text-dark">Khởi tạo nhân viên mới</h5>
-                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
             </div>
-            <form action="/user/add" method="POST">
+            <form action="/user/add" method="POST" novalidate>
                 <div class="modal-body p-4 bg-white">
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-secondary">Mã nhân viên</label>
-                            <input type="text" class="form-control border rounded-2 p-2 shadow-none" name="user_code" placeholder="NV001" required>
+                            <div class="input-group">
+                                <input type="text" class="form-control rounded-start-2 shadow-none" id="add_user_code"
+                                    name="user_code" placeholder="NV001" required>
+                                <button class="btn btn-outline-secondary rounded-end-2 px-3" type="button"
+                                    id="btnRandomCode" title="Tạo mã ngẫu nhiên">
+                                    <i class="bi bi-shuffle"></i>
+                                </button>
+                            </div>
                         </div>
+                        <div class="col-md-6"><label class="form-label small fw-semibold text-secondary">Tên đăng
+                                nhập</label><input type="text" class="form-control" name="username"
+                                placeholder="username" required></div>
+                        <div class="col-md-6"><label class="form-label small fw-semibold text-secondary">Họ và
+                                tên</label><input type="text" class="form-control" name="full_name"
+                                placeholder="Nguyễn Văn A" required></div>
+                        <div class="col-md-6"><label class="form-label small fw-semibold text-secondary">Địa chỉ
+                                Email</label><input type="email" class="form-control" name="email"
+                                placeholder="name@example.com" required></div>
+                        <div class="col-md-6"><label class="form-label small fw-semibold text-secondary">Số điện
+                                thoại</label><input type="text" class="form-control" name="phone"
+                                placeholder="0901234..."></div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-secondary">Tên đăng nhập</label>
-                            <input type="text" class="form-control border rounded-2 p-2 shadow-none" name="username" placeholder="username" required>
+                            <label class="form-label small fw-semibold text-secondary">Giới tính</label>
+                            <select class="form-select" name="gender">
+                                <option value="male">Nam</option>
+                                <option value="female">Nữ</option>
+                                <option value="other" selected>Khác</option>
+                            </select>
                         </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-semibold text-secondary">Mật khẩu</label>
-                            <input type="password" class="form-control border rounded-2 p-2 shadow-none" name="password" placeholder="••••••••" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-semibold text-secondary">Họ và tên</label>
-                            <input type="text" class="form-control border rounded-2 p-2 shadow-none" name="full_name" placeholder="Nguyễn Văn A" required>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small fw-semibold text-secondary">Địa chỉ Email</label>
-                            <input type="email" class="form-control border rounded-2 p-2 shadow-none" name="email" placeholder="name@example.com" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-semibold text-secondary">Số điện thoại</label>
-                            <input type="text" class="form-control border rounded-2 p-2 shadow-none" name="phone" placeholder="0901234...">
-                        </div>
+                        <div class="col-md-6"><label class="form-label small fw-semibold text-secondary">Ngày
+                                sinh</label><input type="date" class="form-control" name="date_of_birth"></div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold text-secondary">Vai trò phân quyền</label>
-                            <select class="form-select border rounded-2 p-2 shadow-none" name="role">
-                                <option value="staff">Thu ngân (Staff)</option>
-                                <option value="admin">Chủ cửa hàng (Admin)</option>
+                            <select class="form-select" name="role_id">
+                                <option value="2" selected>Thu ngân (Staff)</option>
+                                <option value="1">Chủ cửa hàng (Admin)</option>
                             </select>
+                        </div>
+                        <div class="col-12"><label class="form-label small fw-semibold text-secondary">Địa
+                                chỉ</label><input type="text" class="form-control" name="address"
+                                placeholder="Số nhà, tên đường..."></div>
+                        <div class="col-12"><label class="form-label small fw-semibold text-secondary">Ghi
+                                chú</label><textarea class="form-control" name="note" rows="2"
+                                placeholder="Hệ thống tự động sinh mật khẩu ngẫu nhiên và gửi về Email trên..."></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top p-3 bg-white">
-                    <button type="button" class="btn btn-light fw-semibold rounded-2 px-3" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary fw-semibold rounded-2 px-4" style="background-color: #3c50e0; border-color: #3c50e0;">Lưu lại</button>
+                    <button type="button" class="btn btn-light fw-semibold rounded-2 px-3"
+                        data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary fw-semibold rounded-2 px-4"
+                        style="background-color: #3c50e0; border-color: #3c50e0;">Lưu lại</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var globalModalEl = document.getElementById('globalNotificationModal');
+    if (globalModalEl) {
+        var myModal = new bootstrap.Modal(globalModalEl);
+        myModal.show();
+        setTimeout(function() {
+            myModal.hide();
+        }, 2000);
+    }
+
+    const btnRandom = document.getElementById('btnRandomCode');
+    const inputCode = document.getElementById('add_user_code');
+    if (btnRandom && inputCode) {
+        btnRandom.addEventListener('click', function() {
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            inputCode.value = 'NV' + randomNum;
+            inputCode.classList.remove('is-invalid');
+            const feedback = inputCode.parentNode.parentNode.querySelector('.invalid-feedback');
+            if (feedback) feedback.remove();
+        });
+    }
+
+    function validateForm(formEl) {
+        let isValid = true;
+        const inputs = formEl.querySelectorAll('input, select, textarea');
+
+        inputs.forEach(input => {
+            if (input.hasAttribute('readonly') || input.type === 'hidden' || input.name === 'note' ||
+                input.name === 'phone' || input.name === 'address' || input.name === 'date_of_birth') {
+                return;
+            }
+
+            input.classList.remove('is-invalid');
+
+            let container = input.parentNode;
+            if (input.id === 'add_user_code') {
+                container = input.parentNode.parentNode;
+            }
+
+            const oldFeedback = container.querySelector('.invalid-feedback');
+            if (oldFeedback) oldFeedback.remove();
+
+            let hasError = false;
+            let errorMsg = "";
+
+            if (!input.value.trim()) {
+                hasError = true;
+                errorMsg = "Trường thông tin này không được để trống!";
+            } else if (input.type === 'email') {
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (!emailPattern.test(input.value.trim())) {
+                    hasError = true;
+                    errorMsg = "Địa chỉ email không đúng định dạng!";
+                }
+            }
+
+            if (hasError) {
+                isValid = false;
+                input.classList.add('is-invalid');
+
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.className = 'invalid-feedback fw-semibold small mt-1 d-block';
+                feedbackDiv.innerText = errorMsg;
+
+                container.appendChild(feedbackDiv);
+            }
+
+            input.addEventListener('input', function() {
+                input.classList.remove('is-invalid');
+                const feedback = container.querySelector('.invalid-feedback');
+                if (feedback) feedback.remove();
+            });
+        });
+
+        return isValid;
+    }
+
+    const addForm = document.querySelector('#addUserModal form');
+    if (addForm) {
+        addForm.addEventListener('submit', function(e) {
+            if (!validateForm(addForm)) {
+                e.preventDefault();
+            }
+        });
+    }
+
+    const editForms = document.querySelectorAll('form[action="/user/edit"]');
+    editForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!validateForm(form)) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
 
 <?php require_once 'views/layout/footer.php'; ?>

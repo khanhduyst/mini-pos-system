@@ -1,11 +1,14 @@
 <?php
 require_once 'models/UserModel.php';
+require_once 'helpers/MailHelper.php';
 
-class UserController {
+class UserController
+{
     private $db;
     private $userModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->userModel = new UserModel($this->db);
@@ -18,48 +21,95 @@ class UserController {
         }
     }
 
-    public function index() {
+    public function index()
+    {
         $users = $this->userModel->getAllUsers();
         require_once 'views/users/index.php';
     }
 
-    public function add() {
+    private function generateRandomPassword($length = 8)
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        return substr(str_shuffle($chars), 0, $length);
+    }
+
+    public function add()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $user_code = $_POST['user_code'];
-            $username = $_POST['username'];
-            $password = $_POST['password'];
+            $username  = $_POST['username'];
             $full_name = $_POST['full_name'];
-            $email = $_POST['email'];
-            $phone = $_POST['phone'];
-            $role = $_POST['role'];
+            $email     = $_POST['email'];
+            $phone     = $_POST['phone'];
+            $gender    = $_POST['gender'];
+            $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
+            $address   = $_POST['address'];
+            $role_id   = $_POST['role_id'];
+            $note      = $_POST['note'];
 
-            $this->userModel->createUser($user_code, $username, $password, $full_name, $email, $phone, $role);
+            $random_password = $this->generateRandomPassword();
+
+            if ($this->userModel->createUser($user_code, $username, $random_password, $full_name, $email, $phone, $gender, $date_of_birth, $address, $role_id, $note)) {
+
+                $subject = "Thông tin tài khoản nhân viên mới - MINI POS";
+                $body = "
+                    <h3>Chào mừng $full_name gia nhập đội ngũ!</h3>
+                    <p>Tài khoản truy cập hệ thống phần mềm POS tại quầy của bạn đã được khởi tạo thành công:</p>
+                    <table border='0' cellpadding='5'>
+                        <tr><td><strong>Đường dẫn:</strong></td><td>http://localhost:8000/auth/login</td></tr>
+                        <tr><td><strong>Tài khoản:</strong></td><td><span style='color:#3c50e0;font-weight:bold;'>$username</span></td></tr>
+                        <tr><td><strong>Mật khẩu:</strong></td><td><span style='color:#e02424;font-weight:bold;'>$random_password</span></td></tr>
+                    </table>
+                    <p><i>Lưu ý: Vui lòng không chia sẻ email này cho bất kỳ ai để đảm bảo tính bảo mật.</i></p>
+                ";
+
+                MailHelper::send($email, $full_name, $subject, $body);
+
+                $_SESSION['flash_success'] = "Khởi tạo tài khoản và gửi email mật khẩu thành công!";
+            } else {
+                $_SESSION['flash_error'] = "Lỗi: Không thể thêm nhân viên mới!";
+            }
             header("Location: /user/index");
             exit();
         }
     }
 
-    public function toggle() {
+    public function edit()
+    {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $id        = $_POST['id'];
+            $full_name = $_POST['full_name'];
+            $email     = $_POST['email'];
+            $phone     = $_POST['phone'];
+            $gender    = $_POST['gender'];
+            $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
+            $address   = $_POST['address'];
+            $role_id   = $_POST['role_id'];
+            $note      = $_POST['note'];
+
+            if ($this->userModel->updateUser($id, $full_name, $email, $phone, $gender, $date_of_birth, $address, $role_id, $note)) {
+                $_SESSION['flash_success'] = "Cập nhật thông tin nhân viên thành công!";
+            } else {
+                $_SESSION['flash_error'] = "Lỗi: Hệ thống không thể lưu thông tin chỉnh sửa!";
+            }
+            header("Location: /user/index");
+            exit();
+        }
+    }
+
+    public function toggle()
+    {
         if (isset($_GET['id']) && isset($_GET['status'])) {
-            $id = $_GET['id'];
+            $id     = $_GET['id'];
             $status = $_GET['status'];
-            $this->userModel->toggleStatus($id, $status);
+            if ($this->userModel->toggleStatus($id, $status)) {
+                $action_text = ($status == 1) ? "Khóa" : "Mở khóa";
+                $_SESSION['flash_success'] = $action_text . " tài khoản nhân viên thành công!";
+            } else {
+                $_SESSION['flash_error'] = "Lỗi: Thao tác thất bại!";
+            }
         }
         header("Location: /user/index");
         exit();
-    }
-
-    public function edit() {
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id = $_POST['id'];
-            $full_name = $_POST['full_name'];
-            $email = $_POST['email'];
-            $phone = $_POST['phone'];
-            $role = $_POST['role'];
-
-            $this->userModel->updateUser($id, $full_name, $email, $phone, $role);
-            header("Location: /user/index");
-            exit();
-        }
     }
 }

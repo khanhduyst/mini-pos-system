@@ -1,11 +1,13 @@
 <?php
 require_once 'models/UserModel.php';
 
-class AuthController {
+class AuthController
+{
     private $db;
     private $userModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->userModel = new UserModel($this->db);
@@ -14,47 +16,54 @@ class AuthController {
         }
     }
 
-    public function login() {
+    public function login()
+    {
         if (isset($_SESSION['user_id'])) {
-            header("Location: /home");
+            header("Location: /user/index");
             exit();
         }
 
-        $error = "";
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $username = $_POST['username'];
             $password = $_POST['password'];
 
             $user = $this->userModel->login($username);
 
-            if ($user) {
+            if ($user && password_verify($password, $user['password'])) {
                 if ($user['status'] == 0) {
-                    $error = "Tài khoản của bạn đã bị khóa!";
-                } else if (password_verify($password, $user['password'])) {
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_code'] = $user['user_code'];
-                    $_SESSION['username'] = $user['username'];
-                    $_SESSION['full_name'] = $user['full_name'];
-                    $_SESSION['role'] = $user['role'];
-                    
-                    header("Location: /home");
+                    $_SESSION['flash_error'] = "Tài khoản của bạn hiện đang bị khóa!";
+                    header("Location: /auth/login");
                     exit();
-                } else {
-                    $error = "Mật khẩu không chính xác!";
                 }
+
+                unset($_SESSION['flash_success']);
+                unset($_SESSION['flash_error']);
+
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_code'] = $user['user_code'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['full_name'] = $user['full_name'];
+                $_SESSION['email'] = $user['email'];
+                $_SESSION['role'] = $user['role_name'];
+
+                $_SESSION['flash_login_success'] = true;
             } else {
-                $error = "Tên đăng nhập không tồn tại!";
+                $_SESSION['flash_error'] = "Tên đăng nhập hoặc mật khẩu không chính xác!";
+                header("Location: /auth/login");
+                exit();
             }
         }
-        require_once 'views/login.php';
+
+        require_once 'views/auth/login.php';
     }
 
-    public function logout() {
+    public function logout()
+    {
+        session_destroy();
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
-        session_unset();
-        session_destroy();
+        $_SESSION['flash_success'] = "Bạn đã đăng xuất khỏi hệ thống!";
         header("Location: /auth/login");
         exit();
     }
