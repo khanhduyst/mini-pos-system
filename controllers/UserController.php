@@ -2,13 +2,11 @@
 require_once 'models/UserModel.php';
 require_once 'helpers/MailHelper.php';
 
-class UserController
-{
+class UserController {
     private $db;
     private $userModel;
 
-    public function __construct()
-    {
+    public function __construct() {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->userModel = new UserModel($this->db);
@@ -21,20 +19,30 @@ class UserController
         }
     }
 
-    public function index()
-    {
-        $users = $this->userModel->getAllUsers();
+    public function index() {
+        $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+        $role_id = (isset($_GET['role_id']) && $_GET['role_id'] !== '') ? (int)$_GET['role_id'] : null;
+        $status = (isset($_GET['status']) && $_GET['status'] !== '') ? (int)$_GET['status'] : null;
+
+        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        if ($current_page < 1) $current_page = 1;
+        $limit = 10;
+        $offset = ($current_page - 1) * $limit;
+
+        $total_users = $this->userModel->countUsersWithFilter($search, $role_id, $status);
+        $total_pages = ceil($total_users / $limit);
+
+        $users = $this->userModel->getUsersWithFilter($search, $role_id, $status, $limit, $offset);
+
         require_once 'views/users/index.php';
     }
 
-    private function generateRandomPassword($length = 8)
-    {
+    private function generateRandomPassword($length = 8) {
         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         return substr(str_shuffle($chars), 0, $length);
     }
 
-    public function add()
-    {
+    public function add() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $user_code = $_POST['user_code'];
             $username  = $_POST['username'];
@@ -50,7 +58,6 @@ class UserController
             $random_password = $this->generateRandomPassword();
 
             if ($this->userModel->createUser($user_code, $username, $random_password, $full_name, $email, $phone, $gender, $date_of_birth, $address, $role_id, $note)) {
-
                 $subject = "Thông tin tài khoản nhân viên mới - MINI POS";
                 $body = "
                     <h3>Chào mừng $full_name gia nhập đội ngũ!</h3>
@@ -74,8 +81,7 @@ class UserController
         }
     }
 
-    public function edit()
-    {
+    public function edit() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id        = $_POST['id'];
             $full_name = $_POST['full_name'];
@@ -97,8 +103,7 @@ class UserController
         }
     }
 
-    public function toggle()
-    {
+    public function toggle() {
         if (isset($_GET['id']) && isset($_GET['status'])) {
             $id     = $_GET['id'];
             $status = $_GET['status'];

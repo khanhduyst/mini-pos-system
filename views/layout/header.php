@@ -42,7 +42,7 @@
             background-color: #f0f2fe;
             color: #3c50e0;
             border-left-color: #3c50e0;
-            
+
         }
 
         .main-content {
@@ -81,6 +81,11 @@
                 <li>
                     <a href="/user/index" class="nav-link active">
                         <i class="bi bi-people"></i> Quản lý nhân viên
+                    </a>
+                </li>
+                <li>
+                    <a href="/customer/index" class="nav-link">
+                        <i class="bi bi-people-fill"></i> Quản lý khách hàng
                     </a>
                 </li>
                 <li>

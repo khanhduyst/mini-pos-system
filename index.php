@@ -2,6 +2,7 @@
 require_once 'config/database.php';
 require_once 'controllers/AuthController.php';
 require_once 'controllers/UserController.php';
+require_once 'controllers/CustomerController.php';
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -59,10 +60,27 @@ if ($controller_name == 'user') {
     exit();
 }
 
+if ($controller_name == 'customer') {
+    $controller = new CustomerController();
+    if ($action_name == 'index') {
+        $controller->index();
+    } else if ($action_name == 'add') {
+        $controller->add();
+    } else if ($action_name == 'edit') {
+        $controller->edit();
+    } else if ($action_name == 'payDebt') {
+        $controller->payDebt();
+    } else if ($action_name == 'toggle') {
+        $controller->toggle();
+    } else {
+        echo "404 Not Found";
+    }
+    exit();
+}
+
 if ($controller_name == 'home' || $controller_name == '') {
-    echo "Chào mừng " . $_SESSION['full_name'] . " đến với Hệ thống POS tại quầy! <br><br>";
-    echo "<a href='/user/index' style='font-weight:bold; font-size:18px;'>[ VÀO TRANG QUẢN LÝ NHÂN VIÊN ]</a><br><br>";
-    echo "<a href='/auth/logout'>Đăng xuất</a>";
+    header("Location: /user/index");
+    exit();
 } else {
     echo "404 Not Found";
 }
