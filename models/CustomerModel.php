@@ -1,13 +1,16 @@
 <?php
-class CustomerModel {
+class CustomerModel
+{
     private $conn;
     private $table_name = "customers";
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->conn = $db;
     }
 
-    public function countCustomersWithFilter($search, $status) {
+    public function countCustomersWithFilter($search, $status)
+    {
         $query = "SELECT COUNT(*) as total FROM " . $this->table_name . " WHERE 1=1";
         if (!empty($search)) {
             $query .= " AND (full_name LIKE :search1 OR customer_code LIKE :search2 OR phone LIKE :search3)";
@@ -30,7 +33,8 @@ class CustomerModel {
         return $row['total'];
     }
 
-    public function getCustomersWithFilter($search, $status, $limit, $offset) {
+    public function getCustomersWithFilter($search, $status, $limit, $offset)
+    {
         $query = "SELECT * FROM " . $this->table_name . " WHERE 1=1";
         if (!empty($search)) {
             $query .= " AND (full_name LIKE :search1 OR customer_code LIKE :search2 OR phone LIKE :search3)";
@@ -39,7 +43,7 @@ class CustomerModel {
             $query .= " AND status = :status";
         }
         $query .= " ORDER BY id DESC LIMIT :limit OFFSET :offset";
-        
+
         $stmt = $this->conn->prepare($query);
         if (!empty($search)) {
             $searchTerm = "%{$search}%";
@@ -56,7 +60,8 @@ class CustomerModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function createCustomer($customer_code, $full_name, $phone, $email, $gender, $date_of_birth, $address, $note) {
+    public function createCustomer($customer_code, $full_name, $phone, $email, $gender, $date_of_birth, $address, $note)
+    {
         $query = "INSERT INTO " . $this->table_name . " 
                   (customer_code, full_name, phone, email, gender, date_of_birth, address, note, status, points, total_spent, debt, created_at) 
                   VALUES (:customer_code, :full_name, :phone, :email, :gender, :date_of_birth, :address, :note, 1, 0, 0.00, 0.00, NOW())";
@@ -72,7 +77,8 @@ class CustomerModel {
         return $stmt->execute();
     }
 
-    public function updateCustomer($id, $full_name, $phone, $email, $gender, $date_of_birth, $address, $note) {
+    public function updateCustomer($id, $full_name, $phone, $email, $gender, $date_of_birth, $address, $note)
+    {
         $query = "UPDATE " . $this->table_name . " 
                   SET full_name = :full_name, phone = :phone, email = :email, gender = :gender, 
                       date_of_birth = :date_of_birth, address = :address, note = :note 
@@ -89,7 +95,8 @@ class CustomerModel {
         return $stmt->execute();
     }
 
-    public function payDebt($customer_id, $user_id, $amount, $note) {
+    public function payDebt($customer_id, $user_id, $amount, $note)
+    {
         try {
             $this->conn->beginTransaction();
 
@@ -131,7 +138,8 @@ class CustomerModel {
         }
     }
 
-    public function getDebtHistory($customer_id) {
+    public function getDebtHistory($customer_id)
+    {
         $query = "SELECT d.*, u.full_name as staff_name FROM customer_debts d
                   JOIN users u ON d.user_id = u.id
                   WHERE d.customer_id = :customer_id ORDER BY d.id DESC";
@@ -141,12 +149,29 @@ class CustomerModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function toggleStatus($id, $status) {
+    public function toggleStatus($id, $status)
+    {
         $new_status = ($status == 1) ? 0 : 1;
         $query = "UPDATE " . $this->table_name . " SET status = :status WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':status', $new_status, PDO::PARAM_INT);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();
+    }
+
+    public function isPhoneExists($phone, $exclude_id = null)
+    {
+        $query = "SELECT COUNT(*) as total FROM " . $this->table_name . " WHERE phone = :phone";
+        if ($exclude_id !== null) {
+            $query .= " AND id != :exclude_id";
+        }
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':phone', $phone);
+        if ($exclude_id !== null) {
+            $stmt->bindParam(':exclude_id', $exclude_id, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['total'] > 0;
     }
 }

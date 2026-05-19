@@ -1,11 +1,13 @@
 <?php
 require_once 'models/CustomerModel.php';
 
-class CustomerController {
+class CustomerController
+{
     private $db;
     private $customerModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->customerModel = new CustomerModel($this->db);
@@ -18,7 +20,8 @@ class CustomerController {
         }
     }
 
-    public function index() {
+    public function index()
+    {
         $search = isset($_GET['search']) ? trim($_GET['search']) : '';
         $status = (isset($_GET['status']) && $_GET['status'] !== '') ? (int)$_GET['status'] : null;
 
@@ -39,16 +42,24 @@ class CustomerController {
         require_once 'views/customers/index.php';
     }
 
-    public function add() {
+    public function add()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $customer_code = $_POST['customer_code'];
             $full_name     = $_POST['full_name'];
-            $phone         = $_POST['phone'];
+            $phone         = trim($_POST['phone']);
             $email         = !empty($_POST['email']) ? $_POST['email'] : null;
             $gender        = $_POST['gender'];
             $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
             $address       = !empty($_POST['address']) ? $_POST['address'] : null;
             $note          = !empty($_POST['note']) ? $_POST['note'] : null;
+
+            if ($this->customerModel->isPhoneExists($phone)) {
+                $_SESSION['error_add_phone'] = "Số điện thoại này đã được đăng ký cho một khách hàng khác!";
+                $_SESSION['old_add_data'] = $_POST;
+                header("Location: /customer/index");
+                exit();
+            }
 
             if ($this->customerModel->createCustomer($customer_code, $full_name, $phone, $email, $gender, $date_of_birth, $address, $note)) {
                 $_SESSION['flash_success'] = "Thêm mới khách hàng thành công!";
@@ -60,16 +71,24 @@ class CustomerController {
         }
     }
 
-    public function edit() {
+    public function edit()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $id            = $_POST['id'];
             $full_name     = $_POST['full_name'];
-            $phone         = $_POST['phone'];
+            $phone         = trim($_POST['phone']);
             $email         = !empty($_POST['email']) ? $_POST['email'] : null;
             $gender        = $_POST['gender'];
             $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
             $address       = !empty($_POST['address']) ? $_POST['address'] : null;
             $note          = !empty($_POST['note']) ? $_POST['note'] : null;
+
+            if ($this->customerModel->isPhoneExists($phone, $id)) {
+                $_SESSION['error_edit_phone_id'] = $id;
+                $_SESSION['error_edit_phone_msg'] = "Số điện thoại cập nhật đã tồn tại trên hệ thống!";
+                header("Location: /customer/index");
+                exit();
+            }
 
             if ($this->customerModel->updateCustomer($id, $full_name, $phone, $email, $gender, $date_of_birth, $address, $note)) {
                 $_SESSION['flash_success'] = "Cập nhật thông tin khách hàng thành công!";
@@ -81,7 +100,8 @@ class CustomerController {
         }
     }
 
-    public function payDebt() {
+    public function payDebt()
+    {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $customer_id = $_POST['customer_id'];
             $amount      = $_POST['amount'];
@@ -98,7 +118,8 @@ class CustomerController {
         }
     }
 
-    public function toggle() {
+    public function toggle()
+    {
         if (isset($_GET['id']) && isset($_GET['status'])) {
             $id     = $_GET['id'];
             $status = $_GET['status'];

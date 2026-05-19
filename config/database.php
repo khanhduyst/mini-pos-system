@@ -6,6 +6,8 @@ define('DB_USER', 'your_aiven_user');
 define('DB_PASS', 'your_aiven_password');
 
 
+
+
 class Database
 {
     private $host = DB_HOST;

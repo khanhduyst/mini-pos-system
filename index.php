@@ -3,6 +3,8 @@ require_once 'config/database.php';
 require_once 'controllers/AuthController.php';
 require_once 'controllers/UserController.php';
 require_once 'controllers/CustomerController.php';
+require_once 'controllers/CategoryController.php';
+require_once 'controllers/ProductController.php';
 
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -72,6 +74,36 @@ if ($controller_name == 'customer') {
         $controller->payDebt();
     } else if ($action_name == 'toggle') {
         $controller->toggle();
+    } else {
+        echo "404 Not Found";
+    }
+    exit();
+}
+
+if ($controller_name == 'category') {
+    $controller = new CategoryController();
+    if ($action_name == 'index') {
+        $controller->index();
+    } else if ($action_name == 'add') {
+        $controller->add();
+    } else if ($action_name == 'edit') {
+        $controller->edit();
+    } else if ($action_name == 'toggle') {
+        $controller->toggle();
+    } else {
+        echo "404 Not Found";
+    }
+    exit();
+}
+
+if ($controller_name == 'product') {
+    $controller = new ProductController();
+    if ($action_name == 'index') {
+        $controller->index();
+    } else if ($action_name == 'add') {
+        $controller->add();
+    } else if ($action_name == 'edit') {
+        $controller->edit();
     } else {
         echo "404 Not Found";
     }
