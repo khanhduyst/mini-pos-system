@@ -13,7 +13,7 @@ class UserController {
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
-        if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+        if (!isset($_SESSION['user_id'])) {
             header("Location: /auth/login");
             exit();
         }

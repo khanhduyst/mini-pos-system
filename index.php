@@ -104,6 +104,33 @@ if ($controller_name == 'product') {
         $controller->add();
     } else if ($action_name == 'edit') {
         $controller->edit();
+    } else if ($action_name == 'toggle') {
+        $controller->toggle();
+    } else if ($action_name == 'delete') {
+        $controller->delete();
+    } else {
+        echo "404 Not Found";
+    }
+    exit();
+}
+
+if ($controller_name == 'inventory') {
+    require_once 'controllers/InventoryController.php';
+    $controller = new InventoryController();
+    if ($action_name == 'index') {
+        $controller->index();
+    } else if ($action_name == 'create') {
+        $controller->create();
+    } else if ($action_name == 'add') {
+        $controller->add();
+    } else if ($action_name == 'detail') {
+        $controller->detail();
+    } else if ($action_name == 'approve') {
+        $controller->approve();
+    } else if ($action_name == 'logs') {
+        $controller->logs();
+    } else if ($action_name == 'delete') { 
+        $controller->delete();
     } else {
         echo "404 Not Found";
     }
