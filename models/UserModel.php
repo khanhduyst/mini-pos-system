@@ -20,6 +20,23 @@ class UserModel
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
+    // Hàm bổ sung: Kiểm tra trùng tên đăng nhập hoặc email
+    public function isFieldExists($field, $value, $exclude_id = null)
+    {
+        $query = "SELECT COUNT(*) as total FROM " . $this->table_name . " WHERE " . $field . " = :value";
+        if ($exclude_id !== null) {
+            $query .= " AND id != :exclude_id";
+        }
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':value', $value);
+        if ($exclude_id !== null) {
+            $stmt->bindParam(':exclude_id', $exclude_id, PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['total'] > 0;
+    }
+
     public function countUsersWithFilter($search, $role_id, $status)
     {
         $query = "SELECT COUNT(*) as total FROM " . $this->table_name . " u WHERE 1=1";
@@ -94,7 +111,6 @@ class UserModel
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            // Lệnh này sẽ in thẳng lỗi cấu trúc bảng SQL ra màn hình để bạn biết đang sai ở đâu
             echo "Lỗi truy vấn SQL: " . $e->getMessage();
             exit();
         }
@@ -153,6 +169,10 @@ class UserModel
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':status', $new_status, PDO::PARAM_INT);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        return $stmt->execute();
+
+        if ($stmt->execute()) {
+            return $new_status;
+        }
+        return false;
     }
 }

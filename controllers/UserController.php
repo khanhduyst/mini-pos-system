@@ -2,11 +2,13 @@
 require_once 'models/UserModel.php';
 require_once 'helpers/MailHelper.php';
 
-class UserController {
+class UserController
+{
     private $db;
     private $userModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->userModel = new UserModel($this->db);
@@ -19,7 +21,8 @@ class UserController {
         }
     }
 
-    public function index() {
+    public function index()
+    {
         $search = isset($_GET['search']) ? trim($_GET['search']) : '';
         $role_id = (isset($_GET['role_id']) && $_GET['role_id'] !== '') ? (int)$_GET['role_id'] : null;
         $status = (isset($_GET['status']) && $_GET['status'] !== '') ? (int)$_GET['status'] : null;
@@ -34,26 +37,63 @@ class UserController {
 
         $users = $this->userModel->getUsersWithFilter($search, $role_id, $status, $limit, $offset);
 
+        if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'users' => $users,
+                'total_pages' => $total_pages,
+                'current_page' => $current_page,
+                'current_user_id' => $_SESSION['user_id']
+            ]);
+            exit();
+        }
+
+        $stmt_r = $this->db->prepare("SELECT id, role_name FROM roles");
+        $stmt_r->execute();
+        $roles = $stmt_r->fetchAll(PDO::FETCH_ASSOC);
+
         require_once 'views/users/index.php';
     }
 
-    private function generateRandomPassword($length = 8) {
+    private function generateRandomPassword($length = 8)
+    {
         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         return substr(str_shuffle($chars), 0, $length);
     }
 
-    public function add() {
+    public function add()
+    {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $user_code = $_POST['user_code'];
-            $username  = $_POST['username'];
-            $full_name = $_POST['full_name'];
-            $email     = $_POST['email'];
-            $phone     = $_POST['phone'];
-            $gender    = $_POST['gender'];
+            $user_code = $_POST['user_code'] ?? '';
+            $username  = trim($_POST['username'] ?? '');
+            $full_name = $_POST['full_name'] ?? '';
+            $email     = trim($_POST['email'] ?? '');
+            $phone     = $_POST['phone'] ?? '';
+            $gender    = $_POST['gender'] ?? '';
             $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
-            $address   = $_POST['address'];
-            $role_id   = $_POST['role_id'];
-            $note      = $_POST['note'];
+            $address   = $_POST['address'] ?? '';
+            $role_id   = $_POST['role_id'] ?? '';
+            $note      = $_POST['note'] ?? '';
+
+            // Bắt lỗi trùng mã nhân viên
+            if ($this->userModel->isFieldExists('user_code', $user_code)) {
+                echo json_encode(['success' => false, 'message' => 'Mã nhân viên này đã tồn tại trên hệ thống!']);
+                exit();
+            }
+
+            // Bắt lỗi trùng tên đăng nhập
+            if ($this->userModel->isFieldExists('username', $username)) {
+                echo json_encode(['success' => false, 'message' => 'Tên đăng nhập (username) này đã được sử dụng!']);
+                exit();
+            }
+
+            // Bắt lỗi trùng Email nhân viên
+            if ($this->userModel->isFieldExists('email', $email)) {
+                echo json_encode(['success' => false, 'message' => 'Địa chỉ Email này đã tồn tại trên hệ thống!']);
+                exit();
+            }
 
             $random_password = $this->generateRandomPassword();
 
@@ -72,49 +112,63 @@ class UserController {
 
                 MailHelper::send($email, $full_name, $subject, $body);
 
-                $_SESSION['flash_success'] = "Khởi tạo tài khoản và gửi email mật khẩu thành công!";
+                echo json_encode(['success' => true, 'message' => 'Khởi tạo tài khoản và gửi email mật khẩu thành công!']);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Không thể thêm nhân viên mới!";
+                echo json_encode(['success' => false, 'message' => 'Không thể thêm nhân viên mới vào cơ sở dữ liệu!']);
             }
-            header("Location: /user/index");
             exit();
         }
     }
 
-    public function edit() {
+    public function edit()
+    {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id        = $_POST['id'];
-            $full_name = $_POST['full_name'];
-            $email     = $_POST['email'];
-            $phone     = $_POST['phone'];
-            $gender    = $_POST['gender'];
+            $id        = $_POST['id'] ?? 0;
+            $full_name = $_POST['full_name'] ?? '';
+            $email     = trim($_POST['email'] ?? '');
+            $phone     = $_POST['phone'] ?? '';
+            $gender    = $_POST['gender'] ?? '';
             $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
-            $address   = $_POST['address'];
-            $role_id   = $_POST['role_id'];
-            $note      = $_POST['note'];
+            $address   = $_POST['address'] ?? '';
+            $role_id   = $_POST['role_id'] ?? '';
+            $note      = $_POST['note'] ?? '';
+
+            // Bắt lỗi trùng Email khi chỉnh sửa (loại trừ ID hiện tại)
+            if ($this->userModel->isFieldExists('email', $email, $id)) {
+                echo json_encode(['success' => false, 'message' => 'Địa chỉ Email cập nhật đã tồn tại trên hệ thống!']);
+                exit();
+            }
 
             if ($this->userModel->updateUser($id, $full_name, $email, $phone, $gender, $date_of_birth, $address, $role_id, $note)) {
-                $_SESSION['flash_success'] = "Cập nhật thông tin nhân viên thành công!";
+                echo json_encode(['success' => true, 'message' => 'Cập nhật thông tin nhân viên thành công!']);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Hệ thống không thể lưu thông tin chỉnh sửa!";
+                echo json_encode(['success' => false, 'message' => 'Hệ thống không thể lưu thông tin chỉnh sửa!']);
             }
-            header("Location: /user/index");
             exit();
         }
     }
 
-    public function toggle() {
-        if (isset($_GET['id']) && isset($_GET['status'])) {
-            $id     = $_GET['id'];
-            $status = $_GET['status'];
-            if ($this->userModel->toggleStatus($id, $status)) {
-                $action_text = ($status == 1) ? "Khóa" : "Mở khóa";
-                $_SESSION['flash_success'] = $action_text . " tài khoản nhân viên thành công!";
+    public function toggle()
+    {
+        header('Content-Type: application/json');
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        $status = isset($_GET['status']) ? (int)$_GET['status'] : 0;
+
+        if ($id > 0) {
+            $new_status = $this->userModel->toggleStatus($id, $status);
+            if ($new_status !== false) {
+                echo json_encode([
+                    'success' => true,
+                    'new_status' => $new_status,
+                    'message' => 'Thay đổi trạng thái tài khoản nhân viên thành công!'
+                ]);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Thao tác thất bại!";
+                echo json_encode(['success' => false, 'message' => 'Thao tác cập nhật trạng thái thất bại!']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Mã nhân viên không hợp lệ!']);
         }
-        header("Location: /user/index");
         exit();
     }
 }

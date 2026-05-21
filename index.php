@@ -10,6 +10,7 @@ require_once 'controllers/CustomerController.php';
 require_once 'controllers/CategoryController.php';
 require_once 'controllers/ProductController.php';
 require_once 'controllers/PosController.php';
+require_once 'controllers/OrderController.php';
 
 $database = new Database();
 $db = $database->getConnection();
@@ -147,6 +148,18 @@ if ($controller_name == 'inventory') {
         $controller->logs();
     } else if ($action_name == 'delete') {
         $controller->delete();
+    } else {
+        echo "404 Not Found";
+    }
+    exit();
+}
+
+if ($controller_name == 'order') {
+    $controller = new OrderController();
+    if ($action_name == 'index') {
+        $controller->index();
+    } else if ($action_name == 'detail') {
+        $controller->detail();
     } else {
         echo "404 Not Found";
     }

@@ -39,98 +39,118 @@ class CustomerController
             $customers[$key]['history'] = $this->customerModel->getDebtHistory($customer['id']);
         }
 
+        if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'customers' => $customers,
+                'total_pages' => $total_pages,
+                'current_page' => $current_page
+            ]);
+            exit();
+        }
+
         require_once 'views/customers/index.php';
     }
 
     public function add()
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $customer_code = $_POST['customer_code'];
-            $full_name     = $_POST['full_name'];
-            $phone         = trim($_POST['phone']);
+            $customer_code = $_POST['customer_code'] ?? '';
+            $full_name     = $_POST['full_name'] ?? '';
+            $phone         = trim($_POST['phone'] ?? '');
             $email         = !empty($_POST['email']) ? $_POST['email'] : null;
-            $gender        = $_POST['gender'];
+            $gender        = $_POST['gender'] ?? 'other';
             $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
             $address       = !empty($_POST['address']) ? $_POST['address'] : null;
             $note          = !empty($_POST['note']) ? $_POST['note'] : null;
 
             if ($this->customerModel->isPhoneExists($phone)) {
-                $_SESSION['error_add_phone'] = "Số điện thoại này đã được đăng ký cho một khách hàng khác!";
-                $_SESSION['old_add_data'] = $_POST;
-                header("Location: /customer/index");
+                echo json_encode([
+                    'success' => false,
+                    'error_type' => 'phone',
+                    'message' => 'Số điện thoại này đã được đăng ký cho một khách hàng khác!'
+                ]);
                 exit();
             }
 
             if ($this->customerModel->createCustomer($customer_code, $full_name, $phone, $email, $gender, $date_of_birth, $address, $note)) {
-                $_SESSION['flash_success'] = "Thêm mới khách hàng thành công!";
+                echo json_encode(['success' => true, 'message' => 'Thêm mới khách hàng thành công!']);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Không thể thêm khách hàng!";
+                echo json_encode(['success' => false, 'message' => 'Lỗi: Không thể thêm khách hàng vào cơ sở dữ liệu!']);
             }
-            header("Location: /customer/index");
             exit();
         }
     }
 
     public function edit()
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id            = $_POST['id'];
-            $full_name     = $_POST['full_name'];
-            $phone         = trim($_POST['phone']);
+            $id            = $_POST['id'] ?? 0;
+            $full_name     = $_POST['full_name'] ?? '';
+            $phone         = trim($_POST['phone'] ?? '');
             $email         = !empty($_POST['email']) ? $_POST['email'] : null;
-            $gender        = $_POST['gender'];
+            $gender        = $_POST['gender'] ?? 'other';
             $date_of_birth = !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
             $address       = !empty($_POST['address']) ? $_POST['address'] : null;
             $note          = !empty($_POST['note']) ? $_POST['note'] : null;
 
             if ($this->customerModel->isPhoneExists($phone, $id)) {
-                $_SESSION['error_edit_phone_id'] = $id;
-                $_SESSION['error_edit_phone_msg'] = "Số điện thoại cập nhật đã tồn tại trên hệ thống!";
-                header("Location: /customer/index");
+                echo json_encode([
+                    'success' => false,
+                    'error_type' => 'phone',
+                    'message' => 'Số điện thoại cập nhật đã tồn tại trên hệ thống!'
+                ]);
                 exit();
             }
 
             if ($this->customerModel->updateCustomer($id, $full_name, $phone, $email, $gender, $date_of_birth, $address, $note)) {
-                $_SESSION['flash_success'] = "Cập nhật thông tin khách hàng thành công!";
+                echo json_encode(['success' => true, 'message' => 'Cập nhật thông tin khách hàng thành công!']);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Thao tác thất bại!";
+                echo json_encode(['success' => false, 'message' => 'Lỗi: Thao tác cập nhật thất bại!']);
             }
-            header("Location: /customer/index");
             exit();
         }
     }
 
     public function payDebt()
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $customer_id = $_POST['customer_id'];
-            $amount      = $_POST['amount'];
+            $customer_id = $_POST['customer_id'] ?? 0;
+            $amount      = $_POST['amount'] ?? 0;
             $note        = !empty($_POST['note']) ? $_POST['note'] : "Khách thanh toán tiền nợ tại quầy";
             $user_id     = $_SESSION['user_id'];
 
             if ($this->customerModel->payDebt($customer_id, $user_id, $amount, $note)) {
-                $_SESSION['flash_success'] = "Thu nợ khách hàng thành công!";
+                echo json_encode(['success' => true, 'message' => 'Thu nợ khách hàng thành công!']);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Quá trình trừ nợ thất bại!";
+                echo json_encode(['success' => false, 'message' => 'Lỗi: Quá trình trừ nợ thất bại!']);
             }
-            header("Location: /customer/index");
             exit();
         }
     }
 
     public function toggle()
     {
+        header('Content-Type: application/json');
         if (isset($_GET['id']) && isset($_GET['status'])) {
-            $id     = $_GET['id'];
-            $status = $_GET['status'];
+            $id     = (int)$_GET['id'];
+            $status = (int)$_GET['status'];
             if ($this->customerModel->toggleStatus($id, $status)) {
                 $action_text = ($status == 1) ? "Ngừng theo dõi" : "Kích hoạt lại";
-                $_SESSION['flash_success'] = $action_text . " khách hàng thành công!";
+                echo json_encode([
+                    'success' => true,
+                    'message' => $action_text . " khách hàng thành công!"
+                ]);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Thao tác thất bại!";
+                echo json_encode(['success' => false, 'message' => 'Lỗi: Thao tác thay đổi trạng thái thất bại!']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ!']);
         }
-        header("Location: /customer/index");
         exit();
     }
 }

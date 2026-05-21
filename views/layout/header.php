@@ -8,88 +8,87 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f1f5f9;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-        }
+    body {
+        background-color: #f1f5f9;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+    }
 
-        .sidebar {
-            background-color: #ffffff;
-            min-height: 100vh;
-            width: 260px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
-            z-index: 1000;
-        }
+    .sidebar {
+        background-color: #ffffff;
+        min-height: 100vh;
+        width: 260px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
+        z-index: 1000;
+    }
 
-        .main-content {
-            margin-left: 260px;
-            min-height: 100vh;
-            background-color: #f8fafc;
-        }
+    .main-content {
+        margin-left: 260px;
+        min-height: 100vh;
+        background-color: #f8fafc;
+    }
 
-        .navbar-custom {
-            background-color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        }
+    .navbar-custom {
+        background-color: #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
 
-        .nav-link {
-            color: #475569 !important;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
+    .nav-link {
+        color: #475569 !important;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
 
-        .nav-link:hover {
-            color: #3c50e0 !important;
-            background-color: #f1f5f9;
-        }
+    .nav-link:hover {
+        color: #3c50e0 !important;
+        background-color: #f1f5f9;
+    }
 
-        .nav-link.active {
-            color: #ffffff !important;
-            background-color: #3c50e0 !important;
-            font-weight: 600 !important;
-        }
+    .nav-link.active {
+        color: #ffffff !important;
+        background-color: #3c50e0 !important;
+        font-weight: 600 !important;
+    }
 
-        .nav-link.active i {
-            color: #ffffff !important;
-        }
+    .nav-link.active i {
+        color: #ffffff !important;
+    }
 
-        .card-custom {
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-        }
+    .card-custom {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
 
-        [aria-expanded="true"] .submenu-arrow {
-            transform: rotate(180deg);
-        }
+    [aria-expanded="true"] .submenu-arrow {
+        transform: rotate(180deg);
+    }
 
-        .bg-light-primary {
-            background-color: #f1f5f9;
-        }
+    .bg-light-primary {
+        background-color: #f1f5f9;
+    }
 
-        .style-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
+    .style-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
 
-        .style-scroll::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
+    .style-scroll::-webkit-scrollbar-track {
+        background: #f1f5f9;
+    }
 
-        .style-scroll::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
+    .style-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
     </style>
 </head>
 
 <body>
 
     <?php
-    // Tự động lấy tên controller từ URL hiện tại nếu biến hệ thống không truyền xuống
     $current_uri = isset($_SERVER['REQUEST_URI']) ? strtolower($_SERVER['REQUEST_URI']) : '';
 
     $is_user_active = (isset($controller_name) && $controller_name == 'user') || (strpos($current_uri, '/user') !== false);
@@ -180,6 +179,13 @@
                     class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-2 <?php echo $is_pos_active ? 'active' : ''; ?>">
                     <i class="bi bi-cart3" style="font-size: 16px;"></i>
                     <span>Màn hình bán hàng</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/order/index"
+                    class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-2 <?php echo (isset($controller_name) && $controller_name == 'order') || strpos($_SERVER['REQUEST_URI'], '/order/') !== false ? 'active' : ''; ?>">
+                    <i class="bi bi-receipt" style="font-size: 16px;"></i>
+                    <span>Quản lý đơn hàng</span>
                 </a>
             </li>
         </ul>
