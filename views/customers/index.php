@@ -456,6 +456,8 @@ $old_add = $is_add_error ? $_SESSION['old_add_data'] : [];
     </div>
 </div>
 
+
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const btnRandom = document.getElementById('btnRandomCustCode');

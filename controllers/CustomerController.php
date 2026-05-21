@@ -35,8 +35,8 @@ class CustomerController
 
         $customers = $this->customerModel->getCustomersWithFilter($search, $status, $limit, $offset);
 
-        foreach ($customers as &$customer) {
-            $customer['history'] = $this->customerModel->getDebtHistory($customer['id']);
+        foreach ($customers as $key => $customer) {
+            $customers[$key]['history'] = $this->customerModel->getDebtHistory($customer['id']);
         }
 
         require_once 'views/customers/index.php';

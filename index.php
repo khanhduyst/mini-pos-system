@@ -1,14 +1,18 @@
 <?php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once 'config/database.php';
 require_once 'controllers/AuthController.php';
 require_once 'controllers/UserController.php';
 require_once 'controllers/CustomerController.php';
 require_once 'controllers/CategoryController.php';
 require_once 'controllers/ProductController.php';
+require_once 'controllers/PosController.php';
 
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+$database = new Database();
+$db = $database->getConnection();
 
 $request_uri = $_SERVER['REQUEST_URI'];
 $url_path = parse_url($request_uri, PHP_URL_PATH);
@@ -43,6 +47,18 @@ if ($controller_name == 'auth') {
 if (!isset($_SESSION['user_id'])) {
     $controller = new AuthController();
     $controller->login();
+    exit();
+}
+
+if ($controller_name == 'pos') {
+    $controller = new PosController();
+    if ($action_name == 'index') {
+        $controller->index();
+    } else if ($action_name == 'checkout') {
+        $controller->checkout();
+    } else {
+        echo "404 Not Found";
+    }
     exit();
 }
 
@@ -129,7 +145,7 @@ if ($controller_name == 'inventory') {
         $controller->approve();
     } else if ($action_name == 'logs') {
         $controller->logs();
-    } else if ($action_name == 'delete') { 
+    } else if ($action_name == 'delete') {
         $controller->delete();
     } else {
         echo "404 Not Found";
