@@ -125,7 +125,7 @@ class ProductModel
             return true;
         } catch (Exception $e) {
             $this->conn->rollBack();
-            die($e->getMessage());
+            throw $e;
         }
     }
 
@@ -149,32 +149,71 @@ class ProductModel
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
             $stmt->execute();
 
-            $query_delete = "DELETE FROM product_variants WHERE product_id = :product_id";
-            $stmt_delete = $this->conn->prepare($query_delete);
-            $stmt_delete->bindParam(':product_id', $id, PDO::PARAM_INT);
-            $stmt_delete->execute();
-
-            $query_variant = "INSERT INTO product_variants (product_id, variant_name, barcode, cost_price, sale_price, stock_qty, low_stock_threshold) 
-                              VALUES (:product_id, :variant_name, :barcode, :cost_price, :sale_price, :stock_qty, :limit)";
-
-            $stmt_variant = $this->conn->prepare($query_variant);
+            $current_variants = $this->getVariantsByProductId($id);
+            $processed_ids = [];
 
             foreach ($variants as $v) {
-                $stmt_variant->bindParam(':product_id', $id, PDO::PARAM_INT);
-                $stmt_variant->bindParam(':variant_name', $v['variant_name']);
-                $stmt_variant->bindParam(':barcode', $v['barcode']);
-                $stmt_variant->bindParam(':cost_price', $v['cost_price']);
-                $stmt_variant->bindParam(':sale_price', $v['sale_price']);
-                $stmt_variant->bindParam(':stock_qty', $v['stock_qty'], PDO::PARAM_INT);
-                $stmt_variant->bindParam(':limit', $v['low_stock_threshold'], PDO::PARAM_INT);
-                $stmt_variant->execute();
+                $matched_id = null;
+                
+                foreach ($current_variants as $curr) {
+                    if ($curr['variant_name'] === $v['variant_name'] || (!empty($v['barcode']) && $curr['barcode'] === $v['barcode'])) {
+                        $matched_id = $curr['id'];
+                        break;
+                    }
+                }
+
+                if ($matched_id !== null) {
+                    $query_u = "UPDATE product_variants 
+                                SET barcode = :barcode, cost_price = :cost_price, sale_price = :sale_price, 
+                                    stock_qty = :stock_qty, low_stock_threshold = :limit 
+                                WHERE id = :v_id";
+                    $stmt_u = $this->conn->prepare($query_u);
+                    $stmt_u->bindParam(':barcode', $v['barcode']);
+                    $stmt_u->bindParam(':cost_price', $v['cost_price']);
+                    $stmt_u->bindParam(':sale_price', $v['sale_price']);
+                    $stmt_u->bindParam(':stock_qty', $v['stock_qty'], PDO::PARAM_INT);
+                    $stmt_u->bindParam(':limit', $v['low_stock_threshold'], PDO::PARAM_INT);
+                    $stmt_u->bindParam(':v_id', $matched_id, PDO::PARAM_INT);
+                    $stmt_u->execute();
+                    
+                    $processed_ids[] = $matched_id;
+                } else {
+                    $query_i = "INSERT INTO product_variants (product_id, variant_name, barcode, cost_price, sale_price, stock_qty, low_stock_threshold) 
+                                VALUES (:product_id, :variant_name, :barcode, :cost_price, :sale_price, :stock_qty, :limit)";
+                    $stmt_i = $this->conn->prepare($query_i);
+                    $stmt_i->bindParam(':product_id', $id, PDO::PARAM_INT);
+                    $stmt_i->bindParam(':variant_name', $v['variant_name']);
+                    $stmt_i->bindParam(':barcode', $v['barcode']);
+                    $stmt_i->bindParam(':cost_price', $v['cost_price']);
+                    $stmt_i->bindParam(':sale_price', $v['sale_price']);
+                    $stmt_i->bindParam(':stock_qty', $v['stock_qty'], PDO::PARAM_INT);
+                    $stmt_i->bindParam(':limit', $v['low_stock_threshold'], PDO::PARAM_INT);
+                    $stmt_i->execute();
+                }
+            }
+
+            foreach ($current_variants as $curr) {
+                if (!in_array($curr['id'], $processed_ids)) {
+                    $query_check = "SELECT COUNT(*) as log_total FROM stock_logs WHERE product_variant_id = :v_id";
+                    $stmt_check = $this->conn->prepare($query_check);
+                    $stmt_check->bindParam(':v_id', $curr['id'], PDO::PARAM_INT);
+                    $stmt_check->execute();
+                    $has_log = ($stmt_check->fetch(PDO::FETCH_ASSOC)['log_total'] ?? 0) > 0;
+
+                    if (!$has_log) {
+                        $query_d = "DELETE FROM product_variants WHERE id = :v_id";
+                        $stmt_d = $this->conn->prepare($query_d);
+                        $stmt_d->bindParam(':v_id', $curr['id'], PDO::PARAM_INT);
+                        $stmt_d->execute();
+                    }
+                }
             }
 
             $this->conn->commit();
             return true;
         } catch (Exception $e) {
             $this->conn->rollBack();
-            die($e->getMessage());
+            throw $e;
         }
     }
 

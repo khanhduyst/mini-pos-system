@@ -8,81 +8,81 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-    body {
-        background-color: #f1f5f9;
-        font-family: 'Segoe UI', system-ui, sans-serif;
-    }
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
 
-    .sidebar {
-        background-color: #ffffff;
-        min-height: 100vh;
-        width: 260px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
-        z-index: 1000;
-    }
+        .sidebar {
+            background-color: #ffffff;
+            min-height: 100vh;
+            width: 260px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 1px 0 5px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+        }
 
-    .main-content {
-        margin-left: 260px;
-        min-height: 100vh;
-        background-color: #f8fafc;
-    }
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            background-color: #f8fafc;
+        }
 
-    .navbar-custom {
-        background-color: #ffffff;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
+        .navbar-custom {
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
 
-    .nav-link {
-        color: #475569 !important;
-        font-weight: 500;
-        font-size: 14px;
-        transition: all 0.2s;
-    }
+        .nav-link {
+            color: #475569 !important;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
 
-    .nav-link:hover {
-        color: #3c50e0 !important;
-        background-color: #f1f5f9;
-    }
+        .nav-link:hover {
+            color: #3c50e0 !important;
+            background-color: #f1f5f9;
+        }
 
-    .nav-link.active {
-        color: #ffffff !important;
-        background-color: #3c50e0 !important;
-        font-weight: 600 !important;
-    }
+        .nav-link.active {
+            color: #ffffff !important;
+            background-color: #3c50e0 !important;
+            font-weight: 600 !important;
+        }
 
-    .nav-link.active i {
-        color: #ffffff !important;
-    }
+        .nav-link.active i {
+            color: #ffffff !important;
+        }
 
-    .card-custom {
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    }
+        .card-custom {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
 
-    [aria-expanded="true"] .submenu-arrow {
-        transform: rotate(180deg);
-    }
+        [aria-expanded="true"] .submenu-arrow {
+            transform: rotate(180deg);
+        }
 
-    .bg-light-primary {
-        background-color: #f1f5f9;
-    }
+        .bg-light-primary {
+            background-color: #f1f5f9;
+        }
 
-    .style-scroll::-webkit-scrollbar {
-        width: 6px;
-    }
+        .style-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
 
-    .style-scroll::-webkit-scrollbar-track {
-        background: #f1f5f9;
-    }
+        .style-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
 
-    .style-scroll::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-    }
+        .style-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
@@ -114,6 +114,13 @@
         </div>
 
         <ul class="nav nav-pills flex-column gap-1 flex-grow-1">
+            <li class="nav-item">
+                <a href="/dashboard/index"
+                    class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-2 <?php echo (strpos($_SERVER['REQUEST_URI'], '/dashboard') !== false || $_SERVER['REQUEST_URI'] == '/') ? 'active' : ''; ?>">
+                    <i class="bi bi-grid-1x2-fill" style="font-size: 16px;"></i>
+                    <span>Bảng điều khiển chính</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="/user/index"
                     class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-2 <?php echo $is_user_active ? 'active' : ''; ?>">
@@ -173,6 +180,13 @@
                         </li>
                     </ul>
                 </div>
+            </li>
+            <li class="nav-item">
+                <a href="/supplier/index"
+                    class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-2 <?php echo (strpos($_SERVER['REQUEST_URI'], '/supplier') !== false) ? 'active' : ''; ?>">
+                    <i class="bi bi-building-gear" style="font-size: 16px;"></i>
+                    <span>Quản lý đối tác & Nhập hàng</span>
+                </a>
             </li>
             <li class="nav-item">
                 <a href="/pos/index"

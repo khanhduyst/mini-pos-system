@@ -35,70 +35,90 @@ class CategoryController
 
         $categories = $this->categoryModel->getCategoriesWithFilter($search, $status, $limit, $offset);
 
+        if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'categories' => $categories,
+                'total_pages' => $total_pages,
+                'current_page' => $current_page
+            ]);
+            exit();
+        }
+
         require_once 'views/categories/index.php';
     }
 
     public function add()
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $category_code = $_POST['category_code'];
-            $category_name = trim($_POST['category_name']);
+            $category_code = $_POST['category_code'] ?? '';
+            $category_name = trim($_POST['category_name'] ?? '');
             $description   = !empty($_POST['description']) ? $_POST['description'] : null;
 
             if ($this->categoryModel->isCategoryNameExists($category_name)) {
-                $_SESSION['error_add_cat_name'] = "Tên danh mục sản phẩm này đã tồn tại trên hệ thống!";
-                $_SESSION['old_add_cat_data'] = $_POST;
-                header("Location: /category/index");
+                echo json_encode([
+                    'success' => false,
+                    'error_type' => 'category_name',
+                    'message' => 'Tên danh mục sản phẩm này đã tồn tại trên hệ thống!'
+                ]);
                 exit();
             }
 
             if ($this->categoryModel->createCategory($category_code, $category_name, $description)) {
-                $_SESSION['flash_success'] = "Thêm mới danh mục thành công!";
+                echo json_encode(['success' => true, 'message' => 'Thêm mới danh mục thành công!']);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Không thể thêm danh mục!";
+                echo json_encode(['success' => false, 'message' => 'Lỗi: Không thể thêm danh mục mới!']);
             }
-            header("Location: /category/index");
             exit();
         }
     }
 
     public function edit()
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id            = $_POST['id'];
-            $category_name = trim($_POST['category_name']);
+            $id            = $_POST['id'] ?? 0;
+            $category_name = trim($_POST['category_name'] ?? '');
             $description   = !empty($_POST['description']) ? $_POST['description'] : null;
 
             if ($this->categoryModel->isCategoryNameExists($category_name, $id)) {
-                $_SESSION['error_edit_cat_id'] = $id;
-                $_SESSION['error_edit_cat_msg'] = "Tên danh mục cập nhật đã tồn tại!";
-                header("Location: /category/index");
+                echo json_encode([
+                    'success' => false,
+                    'error_type' => 'category_name',
+                    'message' => 'Tên danh mục cập nhật đã tồn tại!'
+                ]);
                 exit();
             }
 
             if ($this->categoryModel->updateCategory($id, $category_name, $description)) {
-                $_SESSION['flash_success'] = "Cập nhật danh mục thành công!";
+                echo json_encode(['success' => true, 'message' => 'Cập nhật danh mục thành công!']);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Thao tác thất bại!";
+                echo json_encode(['success' => false, 'message' => 'Lỗi: Thao tác cập nhật thất bại!']);
             }
-            header("Location: /category/index");
             exit();
         }
     }
 
     public function toggle()
     {
+        header('Content-Type: application/json');
         if (isset($_GET['id']) && isset($_GET['status'])) {
-            $id     = $_GET['id'];
-            $status = $_GET['status'];
+            $id     = (int)$_GET['id'];
+            $status = (int)$_GET['status'];
             if ($this->categoryModel->toggleStatus($id, $status)) {
                 $action_text = ($status == 1) ? "Ẩn" : "Hiển thị lại";
-                $_SESSION['flash_success'] = $action_text . " danh mục thành công!";
+                echo json_encode([
+                    'success' => true,
+                    'message' => $action_text . " danh mục thành công!"
+                ]);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Thao tác thất bại!";
+                echo json_encode(['success' => false, 'message' => 'Lỗi: Thao tác đổi trạng thái thất bại!']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ!']);
         }
-        header("Location: /category/index");
         exit();
     }
 }

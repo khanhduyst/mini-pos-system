@@ -32,21 +32,21 @@ $sheets = $sheets ?? [];
                 <tbody class="text-dark" style="font-size: 14px;">
                     <?php if (!empty($sheets)): ?>
                         <?php foreach ($sheets as $s): ?>
-                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <tr style="border-bottom: 1px solid #f1f5f9;" id="sheet-row-<?php echo $s['id']; ?>">
                                 <td class="ps-4 fw-bold font-monospace text-secondary"><?php echo $s['check_code']; ?></td>
                                 <td class="fw-bold text-dark"><?php echo $s['fullname']; ?></td>
                                 <td class="text-muted font-monospace"><?php echo $s['created_at']; ?></td>
                                 <td>
-                                    <span class="badge rounded-1 px-2 py-1 fw-semibold" style="<?php echo $s['status'] == 1 ? 'background-color: #def7ec; color: #03543f; font-size: 11px;' : 'background-color: #fef2f2; color: #9b1c1c; font-size: 11px;'; ?>">
+                                    <span class="badge rounded-1 px-2 py-1 fw-semibold status-badge-el" style="<?php echo $s['status'] == 1 ? 'background-color: #def7ec; color: #03543f; font-size: 11px;' : 'background-color: #fef2f2; color: #9b1c1c; font-size: 11px;'; ?>">
                                         <?php echo $s['status'] == 1 ? 'Đã duyệt kho' : 'Chờ duyệt'; ?>
                                     </span>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <div class="d-flex justify-content-end gap-1">
-                                        <button class="btn btn-sm btn-light border text-secondary px-2" onclick="viewDetail(<?php echo $s['id']; ?>)"><i class="bi bi-eye"></i> Xem phiếu</button>
+                                    <div class="d-flex justify-content-end gap-1 btn-action-container-el">
+                                        <button class="btn btn-sm btn-light border text-secondary px-2 shadow-none" onclick="viewDetail(<?php echo $s['id']; ?>)"><i class="bi bi-eye"></i> Xem phiếu</button>
                                         <?php if ($s['status'] == 0): ?>
-                                            <a href="/inventory/approve?id=<?php echo $s['id']; ?>" class="btn btn-sm btn-success text-white bg-success px-2"><i class="bi bi-check-lg"></i> Duyệt kho</a>
-                                            <button type="button" class="btn btn-sm btn-outline-danger px-2 shadow-none" onclick="confirmDelete(<?php echo $s['id']; ?>, '<?php echo $s['check_code']; ?>')"><i class="bi bi-trash"></i> Xóa nháp</button>
+                                            <button type="button" class="btn btn-sm btn-success text-white bg-success px-2 shadow-none btn-approve-trigger" data-id="<?php echo $s['id']; ?>"><i class="bi bi-check-lg"></i> Duyệt kho</button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger px-2 shadow-none btn-delete-trigger" onclick="confirmDelete(<?php echo $s['id']; ?>, '<?php echo $s['check_code']; ?>')"><i class="bi bi-trash"></i> Xóa nháp</button>
                                         <?php endif; ?>
                                     </div>
                                 </td>
@@ -93,7 +93,7 @@ $sheets = $sheets ?? [];
                 </div>
             </div>
             <div class="modal-footer p-3 bg-light border-top-0 d-flex justify-content-end">
-                <button type="button" class="btn btn-white border fw-semibold rounded-2 px-4 shadow-none small" data-bs-dismiss="modal">Đóng lại</button>
+                <button type="button" class="btn btn-white border fw-semibold rounded-2 px-4 shadow-none small" style="font-size: 14px;" data-bs-dismiss="modal">Đóng lại</button>
             </div>
         </div>
     </div>
@@ -108,7 +108,7 @@ $sheets = $sheets ?? [];
                 <p class="text-muted small mb-4">Bạn có chắc chắn muốn hủy bỏ và xóa vĩnh viễn phiếu nháp <strong class="text-dark font-monospace" id="delSheetCode"></strong> không?</p>
                 <div class="d-flex gap-2 justify-content-center">
                     <button type="button" class="btn btn-light border px-3 fw-semibold rounded-2 small shadow-none" data-bs-dismiss="modal">Hủy bỏ</button>
-                    <a href="" id="btnDoDelete" class="btn btn-danger bg-danger px-4 fw-semibold rounded-2 text-white shadow-none">Xác nhận Xóa</a>
+                    <button type="button" id="btnDoDelete" class="btn btn-danger bg-danger px-4 fw-semibold rounded-2 text-white shadow-none">Xác nhận Xóa</button>
                 </div>
             </div>
         </div>
@@ -116,10 +116,17 @@ $sheets = $sheets ?? [];
 </div>
 
 <script>
+let currentDeleteId = null;
+
 function confirmDelete(id, code) {
+    currentDeleteId = id;
     document.getElementById('delSheetCode').innerText = code;
-    document.getElementById('btnDoDelete').setAttribute('href', '/inventory/delete?id=' + id);
-    new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+    const modalEl = document.getElementById('deleteConfirmModal');
+    let modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (!modalInstance) {
+        modalInstance = new bootstrap.Modal(modalEl);
+    }
+    modalInstance.show();
 }
 
 function viewDetail(id) {
@@ -153,9 +160,175 @@ function viewDetail(id) {
                 `;
             });
             document.getElementById('detailTableBody').innerHTML = html;
-            new bootstrap.Modal(document.getElementById('detailModal')).show();
+            const detailModalEl = document.getElementById('detailModal');
+            let detailModalInstance = bootstrap.Modal.getInstance(detailModalEl);
+            if (!detailModalInstance) {
+                detailModalInstance = new bootstrap.Modal(detailModalEl);
+            }
+            detailModalInstance.show();
         });
 }
+
+document.addEventListener("DOMContentLoaded", function() {
+    function showToast(message, type = 'success') {
+        const oldToast = document.getElementById('pos-custom-toast');
+        if (oldToast) oldToast.remove();
+
+        const toastDiv = document.createElement('div');
+        toastDiv.id = 'pos-custom-toast';
+        
+        let bgColor = '#10b981'; 
+        let icon = '<i class="bi bi-check-circle-fill me-2"></i>';
+        if (type === 'error') {
+            bgColor = '#ef4444'; 
+            icon = '<i class="bi bi-exclamation-circle-fill me-2"></i>';
+        }
+
+        toastDiv.style.cssText = `
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            background-color: ${bgColor};
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 99999;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        `;
+        
+        toastDiv.innerHTML = icon + message;
+        document.body.appendChild(toastDiv);
+
+        setTimeout(() => {
+            toastDiv.style.opacity = '1';
+            toastDiv.style.transform = 'translateY(0)';
+        }, 50);
+
+        setTimeout(() => {
+            toastDiv.style.opacity = '0';
+            toastDiv.style.transform = 'translateY(-20px)';
+            setTimeout(() => toastDiv.remove(), 300);
+        }, 4000);
+    }
+
+    function loadInventorySheets() {
+        fetch('/inventory/index?ajax=1')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderTableRows(data.sheets);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function renderTableRows(sheets) {
+        const tbody = document.querySelector('table tbody');
+        tbody.innerHTML = '';
+
+        if (!sheets || sheets.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center p-5 text-secondary"><i class="bi bi-clipboard-check d-block mb-2" style="font-size: 40px; color: #cbd5e1;"></i>Chưa có phiếu kiểm kho nào được tạo!</td></tr>`;
+            return;
+        }
+
+        sheets.forEach(s => {
+            const badgeStyle = s.status == 1 ? 'background-color: #def7ec; color: #03543f; font-size: 11px;' : 'background-color: #fef2f2; color: #9b1c1c; font-size: 11px;';
+            const badgeTxt = s.status == 1 ? 'Đã duyệt kho' : 'Chờ duyệt';
+            
+            let actionButtons = `<button class="btn btn-sm btn-light border text-secondary px-2 shadow-none" onclick="viewDetail(${s.id})"><i class="bi bi-eye"></i> Xem phiếu</button>`;
+            if (s.status == 0) {
+                actionButtons += `
+                    <button type="button" class="btn btn-sm btn-success text-white bg-success px-2 shadow-none btn-approve-trigger" data-id="${s.id}"><i class="bi bi-check-lg"></i> Duyệt kho</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger px-2 shadow-none btn-delete-trigger" onclick="confirmDelete(${s.id}, '${s.check_code}')"><i class="bi bi-trash"></i> Xóa nháp</button>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.style.borderBottom = '1px solid #f1f5f9';
+            tr.id = `sheet-row-${s.id}`;
+            tr.innerHTML = `
+                <td class="ps-4 fw-bold font-monospace text-secondary">${s.check_code}</td>
+                <td class="fw-bold text-dark">${s.fullname}</td>
+                <td class="text-muted font-monospace">${s.created_at}</td>
+                <td><span class="badge rounded-1 px-2 py-1 fw-semibold status-badge-el" style="${badgeStyle}">${badgeTxt}</span></td>
+                <td class="text-end pe-4"><div class="d-flex justify-content-end gap-1 btn-action-container-el">${actionButtons}</div></td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.querySelector('table tbody').addEventListener('click', function(e) {
+        const approveBtn = e.target.closest('.btn-approve-trigger');
+        if (approveBtn) {
+            e.preventDefault();
+            const id = approveBtn.getAttribute('data-id');
+            
+            const originalHtml = approveBtn.innerHTML;
+            approveBtn.disabled = true;
+            approveBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>`;
+
+            fetch('/inventory/approve?id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadInventorySheets();
+                        showToast(data.message, 'success');
+                    } else {
+                        approveBtn.disabled = false;
+                        approveBtn.innerHTML = originalHtml;
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    approveBtn.disabled = false;
+                    approveBtn.innerHTML = originalHtml;
+                    console.error('Error:', error);
+                    showToast('Có lỗi hệ thống xảy ra!', 'error');
+                });
+        }
+    });
+
+    document.getElementById('btnDoDelete').addEventListener('click', function(e) {
+        e.preventDefault();
+        if (!currentDeleteId) return;
+
+        const btnDelete = e.target;
+        const originalText = btnDelete.innerText;
+        btnDelete.disabled = true;
+        btnDelete.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Xóa...`;
+
+        fetch('/inventory/delete?id=' + currentDeleteId)
+            .then(response => response.json())
+            .then(data => {
+                btnDelete.disabled = false;
+                btnDelete.innerText = originalText;
+                
+                const confirmModalEl = document.getElementById('deleteConfirmModal');
+                const confirmModalInstance = bootstrap.Modal.getInstance(confirmModalEl);
+                if (confirmModalInstance) confirmModalInstance.hide();
+
+                if (data.success) {
+                    loadInventorySheets();
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'error');
+                }
+                currentDeleteId = null;
+            })
+            .catch(error => {
+                btnDelete.disabled = false;
+                btnDelete.innerText = originalText;
+                console.error('Error:', error);
+                showToast('Có lỗi hệ thống xảy ra!', 'error');
+                currentDeleteId = null;
+            });
+    });
+});
 </script>
 
 <?php require_once 'views/layout/footer.php'; ?>

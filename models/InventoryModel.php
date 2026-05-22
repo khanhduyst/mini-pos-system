@@ -86,7 +86,7 @@ class InventoryModel
             return true;
         } catch (Exception $e) {
             $this->conn->rollBack();
-            die($e->getMessage());
+            throw $e;
         }
     }
 
@@ -132,19 +132,52 @@ class InventoryModel
             return true;
         } catch (Exception $e) {
             $this->conn->rollBack();
-            die($e->getMessage());
+            throw $e;
         }
     }
 
-    public function getStockLogs()
+    public function getStockLogs($search = '', $action_type = '', $start_date = '', $end_date = '')
     {
         $query = "SELECT sl.*, pv.variant_name, p.product_name, p.product_code, u.username as fullname 
                   FROM stock_logs sl
                   JOIN product_variants pv ON sl.product_variant_id = pv.id
                   JOIN products p ON pv.product_id = p.id
                   JOIN users u ON sl.user_id = u.id
-                  ORDER BY sl.id DESC";
+                  WHERE 1=1";
+
+        if (!empty($search)) {
+            $query .= " AND (p.product_name LIKE :search1 OR p.product_code LIKE :search2 OR pv.barcode LIKE :search3 OR sl.reference_code LIKE :search4)";
+        }
+        if (!empty($action_type)) {
+            $query .= " AND sl.action_type = :action_type";
+        }
+        if (!empty($start_date)) {
+            $query .= " AND DATE(sl.created_at) >= :start_date";
+        }
+        if (!empty($end_date)) {
+            $query .= " AND DATE(sl.created_at) <= :end_date";
+        }
+
+        $query .= " ORDER BY sl.id DESC";
         $stmt = $this->conn->prepare($query);
+
+        if (!empty($search)) {
+            $searchTerm = "%{$search}%";
+            $stmt->bindParam(':search1', $searchTerm);
+            $stmt->bindParam(':search2', $searchTerm);
+            $stmt->bindParam(':search3', $searchTerm);
+            $stmt->bindParam(':search4', $searchTerm);
+        }
+        if (!empty($action_type)) {
+            $stmt->bindParam(':action_type', $action_type);
+        }
+        if (!empty($start_date)) {
+            $stmt->bindParam(':start_date', $start_date);
+        }
+        if (!empty($end_date)) {
+            $stmt->bindParam(':end_date', $end_date);
+        }
+
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -159,8 +192,7 @@ class InventoryModel
             $stmt_d->bindParam(':id', $id, PDO::PARAM_INT);
             $stmt_d->execute();
 
-
-            $query_m = "DELETE FROM inventory_checks WHERE id = :id AND status = 0"; // Chỉ cho xóa phiếu chưa duyệt
+            $query_m = "DELETE FROM inventory_checks WHERE id = :id AND status = 0";
             $stmt_m = $this->conn->prepare($query_m);
             $stmt_m->bindParam(':id', $id, PDO::PARAM_INT);
             $stmt_m->execute();

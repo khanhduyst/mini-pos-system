@@ -39,6 +39,17 @@ class ProductController
         $products = $this->productModel->getProductsWithFilter($search, $category_id, $limit, $offset);
         $categories = $this->productModel->getAllActiveCategories();
 
+        if (isset($_GET['ajax']) && $_GET['ajax'] == 1) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'products' => $products,
+                'total_pages' => $total_pages,
+                'current_page' => $current_page
+            ]);
+            exit();
+        }
+
         require_once 'views/products/index.php';
     }
 
@@ -50,13 +61,11 @@ class ProductController
 
         $url = "https://api.cloudinary.com/v1_1/" . $this->cloud_name . "/image/upload";
 
-        // TỐI ƯU 1: Lấy Mime-Type chuẩn bằng cách kiểm tra phần mở rộng hoặc ép cứng image/jpeg phòng khi hàm lỗi
         $mime = mime_content_type($file_tmp);
         if ($mime == 'application/octet-stream') {
-            $mime = 'image/jpeg'; // Ép kiểu an toàn để Cloudinary không chặn file tạm trên Windows
+            $mime = 'image/jpeg';
         }
 
-        // Đặt tên file hiển thị trên Cloudinary
         $post_filename = $product_code . "_" . time();
         $cfile = new CURLFile($file_tmp, $mime, $post_filename);
 
@@ -69,7 +78,7 @@ class ProductController
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data); // Truyền mảng chứa CURLFile chuẩn
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
@@ -77,18 +86,16 @@ class ProductController
         $err = curl_error($ch);
         curl_close($ch);
 
-        // Nếu cURL lỗi đường truyền kết nối mạng
         if ($err) {
             return null;
         }
 
         $result = json_decode($response, true);
 
-        // TỐI ƯU 2: BẮT BỆNH ẨN TỪ CLOUDINARY
-        // Nếu API Cloudinary trả về lỗi (Ví dụ: Sai upload_preset, sai cloud_name), nó sẽ trả về mảng có key ['error']
         if (isset($result['error'])) {
-            // Dừng hệ thống hiển thị thẳng thông báo lỗi của Cloudinary để bác đọc bệnh (Ví dụ: "Invalid Upload Preset")
-            die("Lỗi từ server Cloudinary: " . $result['error']['message']);
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => "Lỗi từ server Cloudinary: " . $result['error']['message']]);
+            exit();
         }
 
         return isset($result['secure_url']) ? $result['secure_url'] : null;
@@ -96,138 +103,154 @@ class ProductController
 
     public function add()
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $product_code      = trim($_POST['product_code']);
-            $product_name      = trim($_POST['product_name']);
-            $short_description = !empty($_POST['short_description']) ? trim($_POST['short_description']) : null;
-            $category_id       = $_POST['category_id'];
+            try {
+                $product_code      = trim($_POST['product_code'] ?? '');
+                $product_name      = trim($_POST['product_name'] ?? '');
+                $short_description = !empty($_POST['short_description']) ? trim($_POST['short_description']) : null;
+                $category_id       = $_POST['category_id'] ?? '';
 
-            $v_names     = $_POST['v_name'] ?? [];
-            $barcodes    = $_POST['v_barcode'] ?? [];
-            $cost_prices = $_POST['v_cost'] ?? [];
-            $sale_prices = $_POST['v_sale'] ?? [];
-            $stock_qtys  = $_POST['v_stock'] ?? [];
-            $limits      = $_POST['v_limit'] ?? [];
+                $v_names     = $_POST['v_name'] ?? [];
+                $barcodes    = $_POST['v_barcode'] ?? [];
+                $cost_prices = $_POST['v_cost'] ?? [];
+                $sale_prices = $_POST['v_sale'] ?? [];
+                $stock_qtys  = $_POST['v_stock'] ?? [];
+                $limits      = $_POST['v_limit'] ?? [];
 
-            $variants = [];
-            for ($i = 0; $i < count($v_names); $i++) {
-                if (empty(trim($v_names[$i]))) continue;
-                $variants[] = [
-                    'variant_name'        => trim($v_names[$i]),
-                    'barcode'             => !empty($barcodes[$i]) ? trim($barcodes[$i]) : null,
-                    'cost_price'          => (float)$cost_prices[$i],
-                    'sale_price'          => (float)$sale_prices[$i],
-                    'stock_qty'           => (int)$stock_qtys[$i],
-                    'low_stock_threshold' => !empty($limits[$i]) ? (int)$limits[$i] : 10
-                ];
-            }
-
-            if ($this->productModel->isCodeOrBarcodeExists($product_code, $variants)) {
-                $_SESSION['error_add_prod'] = "Mã hàng gốc hoặc mã vạch barcode nhập vào đã tồn tại trên kệ!";
-                $_SESSION['old_add_prod_data'] = $_POST;
-                header("Location: /product/index");
-                exit();
-            }
-
-            $image_url = 'https://res.cloudinary.com/dnjbvgejr/image/upload/v1779205656/09b31927-1b26-4980-9463-77b005a9cd38_e5l0iy.png';
-
-            if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
-                $uploaded_url = $this->uploadToCloudinary($_FILES['product_image']['tmp_name'], $product_code);
-                if ($uploaded_url !== null) {
-                    $image_url = $uploaded_url;
+                $variants = [];
+                for ($i = 0; $i < count($v_names); $i++) {
+                    if (empty(trim($v_names[$i]))) continue;
+                    $variants[] = [
+                        'variant_name'        => trim($v_names[$i]),
+                        'barcode'             => !empty($barcodes[$i]) ? trim($barcodes[$i]) : null,
+                        'cost_price'          => (float)$cost_prices[$i],
+                        'sale_price'          => (float)$sale_prices[$i],
+                        'stock_qty'           => (int)$stock_qtys[$i],
+                        'low_stock_threshold' => !empty($limits[$i]) ? (int)$limits[$i] : 10
+                    ];
                 }
-            }
 
-            if ($this->productModel->createProductWithVariants($product_code, $product_name, $image_url, $short_description, $category_id, $variants)) {
-                $_SESSION['flash_success'] = "Thêm hàng hóa đa quy cách mới thành công!";
-            } else {
-                $_SESSION['flash_error'] = "Lỗi hệ thống không lưu được dữ liệu!";
+                if ($this->productModel->isCodeOrBarcodeExists($product_code, $variants)) {
+                    echo json_encode([
+                        'success' => false,
+                        'error_type' => 'duplicate',
+                        'message' => 'Mã hàng gốc hoặc mã vạch barcode nhập vào đã tồn tại trên kệ!'
+                    ]);
+                    exit();
+                }
+
+                $image_url = 'https://res.cloudinary.com/dnjbvgejr/image/upload/v1779205656/09b31927-1b26-4980-9463-77b005a9cd38_e5l0iy.png';
+
+                if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
+                    $uploaded_url = $this->uploadToCloudinary($_FILES['product_image']['tmp_name'], $product_code);
+                    if ($uploaded_url !== null) {
+                        $image_url = $uploaded_url;
+                    }
+                }
+
+                if ($this->productModel->createProductWithVariants($product_code, $product_name, $image_url, $short_description, $category_id, $variants)) {
+                    echo json_encode(['success' => true, 'message' => 'Thêm hàng hóa đa quy cách mới thành công!']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống không lưu được dữ liệu!']);
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Lỗi xử lý Database: ' . $e->getMessage()]);
             }
-            header("Location: /product/index");
             exit();
         }
     }
 
     public function edit()
     {
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $id                = $_POST['id'];
-            $product_code      = trim($_POST['product_code']);
-            $product_name      = trim($_POST['product_name']);
-            $short_description = !empty($_POST['short_description']) ? trim($_POST['short_description']) : null;
-            $category_id       = $_POST['category_id'];
+            try {
+                $id                = $_POST['id'] ?? 0;
+                $product_code      = trim($_POST['product_code'] ?? '');
+                $product_name      = trim($_POST['product_name'] ?? '');
+                $short_description = !empty($_POST['short_description']) ? trim($_POST['short_description']) : null;
+                $category_id       = $_POST['category_id'] ?? '';
 
-            $v_names     = $_POST['v_name'] ?? [];
-            $barcodes    = $_POST['v_barcode'] ?? [];
-            $cost_prices = $_POST['v_cost'] ?? [];
-            $sale_prices = $_POST['v_sale'] ?? [];
-            $stock_qtys  = $_POST['v_stock'] ?? [];
-            $limits      = $_POST['v_limit'] ?? [];
+                $v_names     = $_POST['v_name'] ?? [];
+                $barcodes    = $_POST['v_barcode'] ?? [];
+                $cost_prices = $_POST['v_cost'] ?? [];
+                $sale_prices = $_POST['v_sale'] ?? [];
+                $stock_qtys  = $_POST['v_stock'] ?? [];
+                $limits      = $_POST['v_limit'] ?? [];
 
-            $variants = [];
-            for ($i = 0; $i < count($v_names); $i++) {
-                if (empty(trim($v_names[$i]))) continue;
-                $variants[] = [
-                    'variant_name'        => trim($v_names[$i]),
-                    'barcode'             => !empty($barcodes[$i]) ? trim($barcodes[$i]) : null,
-                    'cost_price'          => (float)$cost_prices[$i],
-                    'sale_price'          => (float)$sale_prices[$i],
-                    'stock_qty'           => (int)$stock_qtys[$i],
-                    'low_stock_threshold' => !empty($limits[$i]) ? (int)$limits[$i] : 10
-                ];
-            }
-
-            if ($this->productModel->isCodeOrBarcodeExists($product_code, $variants, $id)) {
-                $_SESSION['error_edit_prod_id'] = $id;
-                $_SESSION['error_edit_prod_msg'] = "Mã hàng hoặc mã vạch cập nhật bị trùng lặp ở sản phẩm khác!";
-                header("Location: /product/index");
-                exit();
-            }
-
-            $image_url = !empty($_POST['current_image']) ? $_POST['current_image'] : 'https://res.cloudinary.com/dnjbvgejr/image/upload/v1779205656/09b31927-1b26-4980-9463-77b005a9cd38_e5l0iy.png';
-            if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
-                $new_image_url = $this->uploadToCloudinary($_FILES['product_image']['tmp_name'], $product_code);
-                if ($new_image_url !== null) {
-                    $image_url = $new_image_url;
+                $variants = [];
+                for ($i = 0; $i < count($v_names); $i++) {
+                    if (empty(trim($v_names[$i]))) continue;
+                    $variants[] = [
+                        'variant_name'        => trim($v_names[$i]),
+                        'barcode'             => !empty($barcodes[$i]) ? trim($barcodes[$i]) : null,
+                        'cost_price'          => (float)$cost_prices[$i],
+                        'sale_price'          => (float)$sale_prices[$i],
+                        'stock_qty'           => (int)$stock_qtys[$i],
+                        'low_stock_threshold' => !empty($limits[$i]) ? (int)$limits[$i] : 10
+                    ];
                 }
-            }
 
-            if ($this->productModel->updateProductWithVariants($id, $product_name, $image_url, $short_description, $category_id, $variants)) {
-                $_SESSION['flash_success'] = "Cập nhật thông tin quy cách sản phẩm thành công!";
-            } else {
-                $_SESSION['flash_error'] = "Lỗi: Cập nhật thất bại!";
+                if ($this->productModel->isCodeOrBarcodeExists($product_code, $variants, $id)) {
+                    echo json_encode([
+                        'success' => false,
+                        'error_type' => 'duplicate',
+                        'message' => 'Mã hàng hoặc mã vạch cập nhật bị trùng lặp ở sản phẩm khác!'
+                    ]);
+                    exit();
+                }
+
+                $image_url = !empty($_POST['current_image']) ? $_POST['current_image'] : 'https://res.cloudinary.com/dnjbvgejr/image/upload/v1779205656/09b31927-1b26-4980-9463-77b005a9cd38_e5l0iy.png';
+                if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
+                    $new_image_url = $this->uploadToCloudinary($_FILES['product_image']['tmp_name'], $product_code);
+                    if ($new_image_url !== null) {
+                        $image_url = $new_image_url;
+                    }
+                }
+
+                if ($this->productModel->updateProductWithVariants($id, $product_name, $image_url, $short_description, $category_id, $variants)) {
+                    echo json_encode(['success' => true, 'message' => 'Cập nhật thông tin quy cách sản phẩm thành công!']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Lỗi: Cập nhật thất bại!']);
+                }
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => 'Lỗi xử lý Database: ' . $e->getMessage()]);
             }
-            header("Location: /product/index");
             exit();
         }
     }
 
     public function toggle()
     {
+        header('Content-Type: application/json');
         if (isset($_GET['id']) && isset($_GET['status'])) {
             $id = (int)$_GET['id'];
             $status = (int)$_GET['status'];
             if ($this->productModel->toggleStatus($id, $status)) {
-                $_SESSION['flash_success'] = "Thay đổi trạng thái kinh doanh thành công!";
+                echo json_encode(['success' => true, 'message' => 'Thay đổi trạng thái kinh doanh thành công!']);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Thao tác thất bại!";
+                echo json_encode(['success' => false, 'message' => 'Lỗi: Thao tác thất bại!']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ!']);
         }
-        header("Location: /product/index");
         exit();
     }
 
     public function delete()
     {
+        header('Content-Type: application/json');
         if (isset($_GET['id'])) {
             $id = (int)$_GET['id'];
             if ($this->productModel->deleteProduct($id)) {
-                $_SESSION['flash_success'] = "Đã xóa sản phẩm và ngừng nhập vĩnh viễn!";
+                echo json_encode(['success' => true, 'message' => 'Đã xóa sản phẩm và ngừng nhập vĩnh viễn!']);
             } else {
-                $_SESSION['flash_error'] = "Lỗi: Không thể xóa sản phẩm!";
+                echo json_encode(['success' => false, 'message' => 'Lỗi: Không thể xóa sản phẩm!']);
             }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Mã sản phẩm không hợp lệ!']);
         }
-        header("Location: /product/index");
         exit();
     }
 }

@@ -11,7 +11,7 @@ $variants = $variants ?? [];
     <a href="/inventory/index" class="btn btn-light border fw-semibold px-3 py-2 rounded-2 shadow-none small" style="font-size: 14px;"><i class="bi bi-arrow-left me-1"></i> Quay lại danh sách</a>
 </div>
 
-<form action="/inventory/add" method="POST">
+<form action="/inventory/add" method="POST" id="createInventorySheetForm">
     <div class="row g-4">
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-3 bg-white p-4">
@@ -70,7 +70,7 @@ $variants = $variants ?? [];
                 </div>
                 <div class="card-footer bg-white border-top p-3 text-end">
                     <a href="/inventory/index" class="btn btn-light border fw-semibold rounded-2 px-4 shadow-none me-2">Hủy bỏ</a>
-                    <button type="submit" class="btn btn-primary fw-semibold rounded-2 px-5 shadow-none" style="background-color: #3c50e0; border-color: #3c50e0;">Lưu phiếu kiểm kho</button>
+                    <button type="submit" class="btn btn-primary fw-semibold rounded-2 px-5 shadow-none btn-submit-save-sheet" style="background-color: #3c50e0; border-color: #3c50e0;">Lưu phiếu kiểm kho</button>
                 </div>
             </div>
         </div>
@@ -122,7 +122,7 @@ $variants = $variants ?? [];
                     <span class="badge bg-secondary font-monospace">${p.product_code}</span>
                 </div>
                 <div class="list-group list-group-flush">
-            `;
+                `;
 
                 p.variants.forEach(v => {
                     html += `
@@ -133,7 +133,7 @@ $variants = $variants ?? [];
                         </div>
                         <span class="text-muted font-monospace">Tồn: <strong class="text-dark">${v.stock_qty}</strong></span>
                     </button>
-                `;
+                    `;
                 });
                 html += `</div>`;
             }
@@ -183,17 +183,115 @@ $variants = $variants ?? [];
                 <button type="button" class="btn btn-sm text-danger border-0 shadow-none" onclick="removeRow(${item.variant_id})"><i class="bi bi-trash"></i></button>
             </td>
         </tr>
-    `;
+        `;
         tableBody.insertAdjacentHTML('beforeend', rowHtml);
         document.getElementById('input_act_' + item.variant_id).focus();
     }
 
     function removeRow(variantId) {
         document.getElementById('tr_item_' + variantId).remove();
-        if (tableBody.querySelectorAll('tr').length === 0) {
+        if (tableBody.querySelectorAll('tr:not(#trEmptyMessage)').length === 0) {
             tableBody.appendChild(emptyMessage);
         }
     }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        function showToast(message, type = 'success') {
+            const oldToast = document.getElementById('pos-custom-toast');
+            if (oldToast) oldToast.remove();
+
+            const toastDiv = document.createElement('div');
+            toastDiv.id = 'pos-custom-toast';
+            
+            let bgColor = '#10b981'; 
+            let icon = '<i class="bi bi-check-circle-fill me-2"></i>';
+            if (type === 'error') {
+                bgColor = '#ef4444'; 
+                icon = '<i class="bi bi-exclamation-circle-fill me-2"></i>';
+            }
+
+            toastDiv.style.cssText = `
+                position: fixed;
+                top: 24px;
+                right: 24px;
+                background-color: ${bgColor};
+                color: #ffffff;
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                z-index: 99999;
+                font-weight: 600;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                opacity: 0;
+                transform: translateY(-20px);
+                transition: all 0.3s ease;
+            `;
+            
+            toastDiv.innerHTML = icon + message;
+            document.body.appendChild(toastDiv);
+
+            setTimeout(() => {
+                toastDiv.style.opacity = '1';
+                toastDiv.style.transform = 'translateY(0)';
+            }, 50);
+
+            setTimeout(() => {
+                toastDiv.style.opacity = '0';
+                toastDiv.style.transform = 'translateY(-20px)';
+                setTimeout(() => toastDiv.remove(), 300);
+            }, 4000);
+        }
+
+        const createSheetForm = document.getElementById('createInventorySheetForm');
+        if (createSheetForm) {
+            createSheetForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const addedItems = tableBody.querySelectorAll('tr:not(#trEmptyMessage)');
+                if (addedItems.length === 0) {
+                    showToast('Lỗi: Phiếu kiểm kho phải có ít nhất một mặt hàng!', 'error');
+                    return;
+                }
+
+                const btnSubmit = createSheetForm.querySelector('.btn-submit-save-sheet');
+                if (btnSubmit) {
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang xử lý...`;
+                }
+
+                const formData = new FormData(createSheetForm);
+                fetch('/inventory/add', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        setTimeout(() => {
+                            window.location.href = '/inventory/index';
+                        }, 1000);
+                    } else {
+                        if (btnSubmit) {
+                            btnSubmit.disabled = false;
+                            btnSubmit.innerText = 'Lưu phiếu kiểm kho';
+                        }
+                        showToast(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    if (btnSubmit) {
+                        btnSubmit.disabled = false;
+                        btnSubmit.innerText = 'Lưu phiếu kiểm kho';
+                    }
+                    console.error('Error:', error);
+                    showToast('Có lỗi hệ thống xảy ra!', 'error');
+                });
+            });
+        }
+    });
 </script>
 
 <?php require_once 'views/layout/footer.php'; ?>

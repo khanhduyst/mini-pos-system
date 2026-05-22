@@ -11,6 +11,8 @@ require_once 'controllers/CategoryController.php';
 require_once 'controllers/ProductController.php';
 require_once 'controllers/PosController.php';
 require_once 'controllers/OrderController.php';
+require_once 'controllers/SupplierController.php';
+require_once 'controllers/DashboardController.php';
 
 $database = new Database();
 $db = $database->getConnection();
@@ -30,7 +32,7 @@ if ($url_path == 'create_admin.php') {
 }
 
 $url_parts = explode('/', $url_path);
-$controller_name = isset($url_parts[0]) && $url_parts[0] != '' ? $url_parts[0] : 'home';
+$controller_name = isset($url_parts[0]) && $url_parts[0] != '' ? $url_parts[0] : 'dashboard';
 $action_name = isset($url_parts[1]) && $url_parts[1] != '' ? $url_parts[1] : 'index';
 
 if ($controller_name == 'auth') {
@@ -48,6 +50,18 @@ if ($controller_name == 'auth') {
 if (!isset($_SESSION['user_id'])) {
     $controller = new AuthController();
     $controller->login();
+    exit();
+}
+
+if ($controller_name == 'dashboard') {
+    $controller = new DashboardController();
+    if ($action_name == 'index') {
+        $controller->index();
+    } else if ($action_name == 'fetchSaleOrderDetail') {
+        $controller->fetchSaleOrderDetail();
+    } else {
+        echo "404 Not Found";
+    }
     exit();
 }
 
@@ -154,6 +168,34 @@ if ($controller_name == 'inventory') {
     exit();
 }
 
+if ($controller_name == 'supplier') {
+    $controller = new SupplierController();
+    if ($action_name == 'index') {
+        $controller->index();
+    } else if ($action_name == 'addSupplier') {
+        $controller->addSupplier();
+    } else if ($action_name == 'editSupplier') {
+        $controller->editSupplier();
+    } else if ($action_name == 'toggleSupplier') {
+        $controller->toggleSupplier();
+    } else if ($action_name == 'orders') {
+        $controller->orders();
+    } else if ($action_name == 'createOrder') {
+        $controller->createOrder();
+    } else if ($action_name == 'orderDetail') {
+        $controller->orderDetail();
+    } else if ($action_name == 'addOrder') {
+        $controller->addOrder();
+    } else if ($action_name == 'approveOrder') {
+        $controller->approveOrder();
+    } else if ($action_name == 'deleteOrder') {
+        $controller->deleteOrder();
+    } else {
+        echo "404 Not Found";
+    }
+    exit();
+}
+
 if ($controller_name == 'order') {
     $controller = new OrderController();
     if ($action_name == 'index') {
@@ -167,7 +209,7 @@ if ($controller_name == 'order') {
 }
 
 if ($controller_name == 'home' || $controller_name == '') {
-    header("Location: /user/index");
+    header("Location: /dashboard/index");
     exit();
 } else {
     echo "404 Not Found";
