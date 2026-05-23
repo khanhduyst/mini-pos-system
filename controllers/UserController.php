@@ -171,4 +171,94 @@ class UserController
         }
         exit();
     }
+
+    public function profile()
+    {
+        $user_id = $_SESSION['user_id'];
+        $user = $this->userModel->getUserProfileData($user_id);
+        require_once 'views/users/profile.php';
+    }
+
+    public function changePassword()
+    {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $user_id = $_SESSION['user_id'];
+            $current_pass = $_POST['current_password'] ?? '';
+            $new_pass = $_POST['new_password'] ?? '';
+            $confirm_pass = $_POST['confirm_password'] ?? '';
+
+            if (empty($current_pass) || empty($new_pass) || empty($confirm_pass)) {
+                echo json_encode(['success' => false, 'message' => 'Vui lòng nhập đầy đủ các trường mật khẩu!']);
+                exit();
+            }
+
+            if ($new_pass !== $confirm_pass) {
+                echo json_encode(['success' => false, 'message' => 'Mật khẩu mới và xác nhận mật khẩu không trùng khớp!']);
+                exit();
+            }
+
+            $db_password = $this->userModel->getUserPasswordHash($user_id);
+
+            if (!password_verify($current_pass, $db_password) && md5($current_pass) !== $db_password) {
+                echo json_encode(['success' => false, 'message' => 'Mật khẩu hiện tại không chính xác!']);
+                exit();
+            }
+
+            $hashed_password = password_hash($new_pass, PASSWORD_BCRYPT);
+
+            if ($this->userModel->updateUserPassword($user_id, $hashed_password)) {
+                echo json_encode(['success' => true, 'message' => 'Cập nhật mật khẩu tài khoản thành công!']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không thể cập nhật mật khẩu mới!']);
+            }
+            exit();
+        }
+    }
+
+    public function resetPassword()
+{
+    header('Content-Type: application/json');
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $user_id = (int)($_POST['id'] ?? 0);
+        if ($user_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Tài khoản không hợp lệ!']);
+            exit();
+        }
+
+        $user = $this->userModel->getUserProfileData($user_id);
+        if (!$user || empty($user['email'])) {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy thông tin địa chỉ Email của nhân viên này!']);
+            exit();
+        }
+
+        $random_password = $this->generateRandomPassword();
+        $hashed_password = password_hash($random_password, PASSWORD_BCRYPT);
+        
+        if ($this->userModel->updateUserPassword($user_id, $hashed_password)) {
+            $full_name = $user['full_name'];
+            $username = $user['username'];
+            $email = $user['email'];
+            
+            $subject = "Cấp lại thông tin mật khẩu nhân viên - MINI POS";
+            $body = "
+                <h3>Mật khẩu tài khoản của bạn đã được thiết lập lại!</h3>
+                <p>Yêu cầu cấp lại mật khẩu từ quản trị viên hệ thống quầy POS đã được thực hiện thành công:</p>
+                <table border='0' cellpadding='5'>
+                    <tr><td><strong>Đường dẫn:</strong></td><td>http://localhost:8000/auth/login</td></tr>
+                    <tr><td><strong>Tài khoản:</strong></td><td><span style='color:#3c50e0;font-weight:bold;'>$username</span></td></tr>
+                    <tr><td><strong>Mật khẩu mới:</strong></td><td><span style='color:#e02424;font-weight:bold;'>$random_password</span></td></tr>
+                </table>
+                <p><i>Lưu ý: Sau khi đăng nhập thành công bằng mật khẩu tạm này, bạn nên truy cập vào mục Hồ sơ cá nhân để thay đổi lại mật khẩu mới.</i></p>
+            ";
+
+            MailHelper::send($email, $full_name, $subject, $body);
+
+            echo json_encode(['success' => true, 'message' => 'Cấp lại mật khẩu mới và gửi Email cho nhân viên thành công!']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Không thể cập nhật mật khẩu mới vào cơ sở dữ liệu!']);
+        }
+        exit();
+    }
+}
 }

@@ -87,6 +87,12 @@ if ($controller_name == 'user') {
         $controller->edit();
     } else if ($action_name == 'toggle') {
         $controller->toggle();
+    } else if ($action_name == 'profile') {
+        $controller->profile();
+    } else if ($action_name == 'changePassword') {
+        $controller->changePassword();
+    } else if ($action_name == 'resetPassword') {
+        $controller->resetPassword();
     } else {
         echo "404 Not Found";
     }

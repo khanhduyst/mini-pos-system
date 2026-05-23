@@ -248,16 +248,20 @@
                             </span>
                             <i class="bi bi-chevron-down text-muted ms-1" style="font-size: 10px;"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 small rounded-2">
-                            <li><a class="dropdown-menu-item dropdown-item py-2" href="/profile/index"><i
-                                        class="bi bi-person me-2 text-secondary"></i>Hồ sơ cá nhân</a></li>
-                            <li><a class="dropdown-menu-item dropdown-item py-2" href="/profile/password"><i
-                                        class="bi bi-shield-lock me-2 text-secondary"></i>Đổi mật khẩu</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-2 p-2 rounded-3" style="min-width: 200px;">
                             <li>
-                                <hr class="dropdown-divider">
+                                <a class="dropdown-item d-flex align-items-center gap-2 small rounded-2 py-2" href="/user/profile">
+                                    <i class="bi bi-person-circle text-secondary fs-6"></i> Hồ sơ cá nhân
+                                </a>
                             </li>
-                            <li><a class="dropdown-menu-item dropdown-item py-2 text-danger" href="/auth/logout"><i
-                                        class="bi bi-box-arrow-left me-2"></i>Đăng xuất</a></li>
+                            <li>
+                                <hr class="dropdown-divider my-1 opacity-50">
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2 small rounded-2 py-2 text-danger" href="/auth/logout">
+                                    <i class="bi bi-box-arrow-right fs-6"></i> Đăng xuất hệ thống
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>

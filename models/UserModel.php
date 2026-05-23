@@ -175,4 +175,36 @@ class UserModel
         }
         return false;
     }
+
+    public function getUserProfileData($user_id)
+    {
+        $query = "SELECT u.*, r.role_name 
+                  FROM users u 
+                  LEFT JOIN roles r ON u.role_id = r.id 
+                  WHERE u.id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getUserPasswordHash($user_id)
+    {
+        $query = "SELECT password FROM users WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['password'] ?? '';
+    }
+
+    public function updateUserPassword($user_id, $new_hashed_password)
+    {
+        $query = "UPDATE users SET password = :password WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':password', $new_hashed_password);
+        $stmt->bindParam(':id', $user_id, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+    
 }
