@@ -8,9 +8,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
+
         body {
             background-color: #f1f5f9;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Be Vietnam Pro', sans-serif !important;
         }
 
         .sidebar {
@@ -121,6 +123,14 @@
                     <span>Bảng điều khiển chính</span>
                 </a>
             </li>
+
+            <li class="nav-item">
+                <a href="/pos/index"
+                    class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-2 <?php echo $is_pos_active ? 'active' : ''; ?>">
+                    <i class="bi bi-cart3" style="font-size: 16px;"></i>
+                    <span>Màn hình bán hàng</span>
+                </a>
+            </li>
             <li class="nav-item">
                 <a href="/user/index"
                     class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-2 <?php echo $is_user_active ? 'active' : ''; ?>">
@@ -186,13 +196,6 @@
                     class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-2 <?php echo (strpos($_SERVER['REQUEST_URI'], '/supplier') !== false) ? 'active' : ''; ?>">
                     <i class="bi bi-building-gear" style="font-size: 16px;"></i>
                     <span>Quản lý đối tác & Nhập hàng</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/pos/index"
-                    class="nav-link d-flex align-items-center gap-3 px-3 py-2 rounded-2 <?php echo $is_pos_active ? 'active' : ''; ?>">
-                    <i class="bi bi-cart3" style="font-size: 16px;"></i>
-                    <span>Màn hình bán hàng</span>
                 </a>
             </li>
             <li class="nav-item">

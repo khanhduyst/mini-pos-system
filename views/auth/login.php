@@ -61,7 +61,7 @@
             showConfirmButton: false,
             timerProgressBar: true,
             willClose: () => {
-                window.location.href = "/user/index";
+                window.location.href = "/dashboard/index";
             }
         });
     });
